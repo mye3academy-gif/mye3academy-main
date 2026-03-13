@@ -1,0 +1,4 @@
+question,subject,level,questiontype,optiona_text,optionb_text,optionc_text,optiond_text,correctindex
+What is React?,frontend,easy,mcq,Library,Framework,Language,IDE,0
+2+2=?,math,easy,mcq,3,4,5,6,1
+Capital of India?,general,easy,mcq,Delhi,Mumbai,Chennai,Kolkata,0

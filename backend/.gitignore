@@ -1,0 +1,23 @@
+# Node modules
+node_modules/
+.agent/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS/System files
+.DS_Store
+
+# Temporary Debug Scripts
+debug_*.js
+probe_api.js
+seed_category.js
+
