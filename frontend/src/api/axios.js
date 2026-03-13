@@ -3,7 +3,7 @@ import axios from "axios";
 
 // Set baseURL to the root of the server
 const base =
-  import.meta.env.VITE_SERVER_URL || "http://localhost:8000";
+  import.meta.env.VITE_SERVER_URL || "https://mye3academy.com/api";
 const instance = axios.create({
   baseURL: base,
   withCredentials: true, 
