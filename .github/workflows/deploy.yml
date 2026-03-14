@@ -26,6 +26,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: frontend/dist/
           server-dir: public_html/
+           timeout: 90000
           state-name: .frontend-ftp-deploy-state.json
 
       - name: 🚀 Deploy Backend to cPanel
