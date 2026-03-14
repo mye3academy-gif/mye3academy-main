@@ -72,9 +72,8 @@ app.use((req, res, next) => {
 });
 
 // --- 3. STATIC FILES ---
+app.use("/api/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use("/api/instructor", instructorDashboardRoutes);
-
 // --- 4. API ROUTES ---
 
 // Auth & Public
