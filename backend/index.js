@@ -45,7 +45,8 @@ const allowedOrigins = [
   "http://localhost:5174",
   "https://mye3academy.com",        
  "http://mye3academy.com",
- "https://www.mye3academy.com"    
+ "https://www.mye3academy.com" ,
+  "http://www.mye3academy.com" 
 ];
 
 app.use(
