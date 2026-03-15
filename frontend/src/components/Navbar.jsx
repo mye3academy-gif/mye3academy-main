@@ -27,9 +27,9 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { userData } = useSelector((state) => state.user);
-  const { items: categories } = useSelector((state) => state.category);
-  const { filters } = useSelector((state) => state.students);
+  const { userData } = useSelector((state) => state.user || {});
+  const categories = useSelector((state) => state.category?.items || []);
+  const { filters } = useSelector((state) => state.students || { filters: {} });
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
