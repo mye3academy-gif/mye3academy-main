@@ -12,6 +12,8 @@ import { AnimatePresence } from "framer-motion";
 import Home from "./pages/Home";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
+import InstitutionLogin from "./pages/InstitutionLogin";
+import InstitutionSignup from "./pages/InstitutionSignup";
 import Navbar from "./components/Navbar";
 import MobileFooterNav from "./components/MobileFooterNav";
 import Footer from "./components/Footer";
@@ -77,18 +79,26 @@ const MainLayout = ({ children }) => {
     location.pathname.startsWith("/student/instructions") ||
     location.pathname.startsWith("/student/test-attempts") ||
     location.pathname === "/login" ||
-    location.pathname === "/signup";
+    location.pathname === "/signup" ||
+    location.pathname === "/institution-login" ||
+    location.pathname === "/institution-signup";
 
   return (
     <>
       <Toaster position="top-center" reverseOrder={false} />
       {!hideLayout && <Navbar />}
       <main className="min-h-[80vh]">{children}</main>
-      {!location.pathname.startsWith("/student/write-test") && 
-       !location.pathname.startsWith("/student/instructions") && 
-       !location.pathname.startsWith("/student/review") && (
+      {!(location.pathname === "/login" || 
+        location.pathname === "/signup" || 
+        location.pathname === "/institution-login" ||
+        location.pathname === "/institution-signup" ||
+        location.pathname.startsWith("/student/write-test") || 
+        location.pathname.startsWith("/student/instructions") || 
+        location.pathname.startsWith("/student/review")) && (
+
         <MobileFooterNav />
       )}
+
       {!hideLayout && <Footer />}
       <ViewModeToggle />
     </>
@@ -114,7 +124,9 @@ const App = () => {
             path="/signup"
             element={!userData ? <Signup /> : <Navigate to="/" replace />}
           />
+          <Route path="/institution-signup" element={<InstitutionSignup />} />
           <Route path="/forget-password" element={<ForgetPassword />} />
+          <Route path="/institution-login" element={<InstitutionLogin />} />
           <Route
             path="/login"
             element={

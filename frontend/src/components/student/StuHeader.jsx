@@ -144,16 +144,15 @@ const StuHeader = ({ user, setActiveTab }) => {
   return (
     <header className="mb-4 relative">
       {/* ── ELITE RIBBON ── */}
-      <div className="relative bg-gradient-to-r from-[#1a3a6b] via-[#1e4db7] to-[#1a3a9e] rounded-2xl px-3 py-2.5 shadow-xl border border-blue-400/20 flex items-center gap-3 flex-wrap xl:flex-nowrap">
-        {/* Glows — shrunk for better screen fit */}
+      {/* ── ELITE RIBBON ── */}
+      <div className="relative bg-gradient-to-br from-slate-900 via-[#0a1e4d] to-slate-900 rounded-2xl px-4 py-3 shadow-2xl border border-white/5 flex items-center justify-between gap-3 flex-wrap">
+        {/* Glows — minimized for mobile neatness */}
         <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-400 rounded-full blur-[60px] opacity-20 -mr-10 -mt-10" />
-          <div className="absolute bottom-0 left-1/3 w-24 h-24 bg-indigo-500 rounded-full blur-[50px] opacity-15" />
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/20 rounded-full blur-[80px]" />
+          <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-[80px]" />
         </div>
 
-
-
-        <div className="flex flex-col min-w-0 pr-2 flex-1 shrink-0">
+        <div className="flex flex-col min-w-0 pr-2 z-10">
           <h1 className="text-sm sm:text-base font-black text-white tracking-tight leading-none truncate">
             Hi,{' '}
             <button
@@ -167,14 +166,14 @@ const StuHeader = ({ user, setActiveTab }) => {
         </div>
 
         {/* ── ACTIONS (SEARCH, ENROLL, NOTIFICATIONS, PROFILE) ── */}
-        <div className="flex items-center gap-1 sm:gap-6 ml-auto h-10 shrink-0">
-          {/* SEARCH */}
+        <div className="flex items-center gap-3 sm:gap-6 z-10">
+          {/* SEARCH (Desktop) */}
           <div className="hidden sm:flex relative items-center group w-full max-w-[180px] transition-all duration-300">
             <Search className="absolute left-3 text-slate-400 group-focus-within:text-blue-400 transition-colors" size={14} />
             <input 
               type="text"
               placeholder="Search..."
-              className="bg-white/5 hover:bg-white/10 focus:bg-white/15 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm font-bold text-white placeholder-white/30 outline-none w-full transition-all focus:ring-2 focus:ring-blue-500/50 focus:max-w-[200px]"
+              className="bg-white/5 hover:bg-white/10 focus:bg-white/15 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm font-bold text-white placeholder-white/30 outline-none w-full transition-all focus:ring-2 focus:ring-blue-500/50"
               onFocus={() => setShowSearch(true)}
             />
           </div>
@@ -182,43 +181,44 @@ const StuHeader = ({ user, setActiveTab }) => {
           {/* MOBILE SEARCH ICON */}
           <button 
             onClick={() => setShowSearch(true)}
-            className="sm:hidden w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-slate-300"
+            className="sm:hidden w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-slate-300 active:scale-95 transition-all"
           >
-            <Search size={16} />
+            <Search size={14} />
           </button>
 
+          {/* ENROLL BUTTON */}
           <button
             onClick={() => setActiveTab('my-tests')}
-            className="flex items-center gap-2 px-2.5 sm:px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-black text-xs uppercase tracking-wider shadow-lg shadow-blue-500/20 transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+            className="flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg sm:rounded-xl font-black text-xs uppercase tracking-wider shadow-lg shadow-blue-500/20 transition-all active:scale-95"
           >
             <BookOpen size={14} />
-            <span className="hidden sm:inline">My Enrolls</span>
+            <span className="hidden sm:inline ml-2">My Enrolls</span>
           </button>
 
-          {/* 🔔 NOTIFICATIONS WITH TEXT */}
+          {/* 🔔 NOTIFICATIONS */}
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => {
                 setShowNotifications((p) => !p);
                 setShowSearch(false);
               }}
-              className={`flex items-center gap-2 px-2.5 sm:px-4 py-2 rounded-xl border transition-all backdrop-blur-md 
+              className={`w-8 h-8 sm:w-auto sm:h-auto sm:px-4 sm:py-2 flex items-center justify-center rounded-lg sm:rounded-xl border transition-all backdrop-blur-md 
                 ${hasNotification ? 'bg-rose-500/20 border-rose-400/30' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
               title="Notifications"
             >
               <Bell
                 className={`transition-colors drop-shadow ${hasNotification ? 'text-rose-300 animate-pulse' : 'text-slate-300'}`}
-                size={16}
+                size={14}
               />
-              <span className="hidden sm:inline text-xs font-black uppercase tracking-wider text-inherit">
+              <span className="hidden sm:inline ml-2 text-xs font-black uppercase tracking-wider text-inherit">
                 Notifications
               </span>
               {hasNotification && (
-                <span className="w-2 h-2 bg-rose-500 rounded-full" />
+                <span className="absolute top-1 right-1 sm:static sm:ml-2 w-1.5 h-1.5 bg-rose-500 rounded-full" />
               )}
             </button>
 
-            {/* Notification Dropdown */}
+            {/* Notification Dropdown remains same... */}
             <AnimatePresence>
               {showNotifications && (
                 <motion.div
@@ -268,12 +268,12 @@ const StuHeader = ({ user, setActiveTab }) => {
             </AnimatePresence>
           </div>
 
-          {/* 👤 PROFILE ICON BUTTON integrated */}
+          {/* 👤 PROFILE ICON BUTTON */}
           <button
             onClick={handleProfileClick}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 p-0.5 shadow-lg hover:scale-105 active:scale-95 transition-all ml-2 sm:ml-4"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 p-0.5 shadow-lg active:scale-95 transition-all"
           >
-            <div className="w-full h-full bg-slate-900 rounded-[10px] sm:rounded-[14px] flex items-center justify-center font-black text-blue-400 text-xs overflow-hidden">
+            <div className="w-full h-full bg-slate-900 rounded-[7px] sm:rounded-[10px] flex items-center justify-center font-black text-blue-400 text-[10px] overflow-hidden">
               {resolvedAvatar ? (
                  <img src={getImageUrl(resolvedAvatar)} alt="avatar" className="w-full h-full object-cover" />
               ) : (
@@ -283,6 +283,7 @@ const StuHeader = ({ user, setActiveTab }) => {
           </button>
         </div>
       </div>
+
 
       {/* ── GLOBAL SEARCH MODAL ── */}
       <AnimatePresence>

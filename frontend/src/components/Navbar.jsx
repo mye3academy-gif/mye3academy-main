@@ -14,7 +14,10 @@ import {
   Home,
   ClipboardList,
   Zap,
+  Grid,
 } from "lucide-react";
+
+
 
 import { logoutUser } from "../redux/userSlice";
 import { fetchCategories } from "../redux/categorySlice";
@@ -127,72 +130,87 @@ const Navbar = () => {
         className={`fixed top-0 w-full z-50 transition-all duration-500 transform ${isVisible ? "translate-y-0" : "-translate-y-full"} ${scrolled ? "bg-white border-b border-slate-100 py-1.5 md:py-2 shadow-sm" : "bg-white/90 backdrop-blur-md py-2 md:py-4"}`}
       >
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <div className="flex justify-between items-center h-12">
+          <div className="flex justify-between items-center h-14 md:h-16">
             {/* MOBILE TOP UI */}
-            <div className="flex md:hidden items-center justify-between w-full">
+            <div className="flex md:hidden items-center justify-between w-full h-full px-2">
+              {/* Left: Logo */}
               <Link
                 to="/"
-                className="flex items-center gap-1.5 flex-shrink-0"
+                className="flex items-center active:scale-95 transition-transform"
               >
                 <img 
                   src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`} 
                   alt="Mye3 Logo" 
-                  className="h-8 w-auto object-contain"
+                  className="h-9 w-auto object-contain"
                 />
               </Link>
+
+              {/* Center: Categories */}
               <div
-                className="relative flex-1 max-w-[140px] mx-1"
+                className="relative"
                 ref={dropdownRef}
               >
                 <button
                   onClick={() =>
                     setIsCategoryDropdownOpen(!isCategoryDropdownOpen)
                   }
-                  className="w-full flex items-center justify-between gap-1.5 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl shadow-sm font-bold text-[12px] text-slate-700 active:scale-95 transition-transform"
+                  className="flex items-center justify-center px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl shadow-sm text-slate-700 active:scale-95 transition-all"
                 >
-                  <span className="truncate">{currentCategoryName}</span>
-                  <ChevronDown
-                    size={14}
-                    className={isCategoryDropdownOpen ? "rotate-180" : ""}
-                  />
+                  <span className="text-[11px] font-black uppercase tracking-tight whitespace-nowrap">
+                    {currentCategoryName}
+                  </span>
                 </button>
-                {isCategoryDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-slate-100 rounded-2xl shadow-2xl py-2 z-[70]">
-                    <button
-                      onClick={() => handleSelectCategory("")}
-                      className="w-full text-left px-5 py-3 text-sm font-bold hover:bg-slate-50"
+                <AnimatePresence>
+                  {isCategoryDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-56 bg-white border border-slate-100 rounded-2xl shadow-2xl py-2 z-[70] overflow-hidden"
                     >
-                      All Categories
-                    </button>
-                    <div className="max-h-[250px] overflow-y-auto">
-                      {categories.map((cat) => (
-                        <button
-                          key={cat._id}
-                          onClick={() => handleSelectCategory(cat.slug)}
-                          className="w-full text-left px-5 py-3 text-sm font-semibold hover:bg-slate-50 text-slate-600"
-                        >
-                          {cat.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                      <div className="px-4 py-2 border-b border-slate-50 mb-1">
+                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Categories</p>
+                      </div>
+                      <div className="max-h-[250px] overflow-y-auto custom-scrollbar">
+                        {categories.map((cat) => (
+                          <button
+                            key={cat._id}
+                            onClick={() => handleSelectCategory(cat.slug)}
+                            className="w-full text-left px-4 py-2.5 text-[10px] font-bold text-slate-600 uppercase tracking-tight hover:bg-slate-50 transition-colors"
+                          >
+                            {cat.name}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
+
+              {/* Right: Menu */}
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="p-2 text-slate-700 active:scale-95 transition-transform"
+                className="p-1.5 text-slate-700 active:scale-90 transition-all"
               >
                 <Menu size={24} />
               </button>
             </div>
 
+
+
+
+
+
+
+
+
+
             {/* DESKTOP TOP UI */}
-            <div className="hidden md:flex items-center justify-between w-full gap-6">
-              
+            <div className="hidden md:flex items-center w-full gap-8">
               {/* === LEFT: Logo === */}
               <Link
                 to="/"
-                className="flex items-center gap-2 flex-shrink-0"
+                className="flex items-center flex-shrink-0 hover:scale-[1.02] transition-transform"
               >
                 <img 
                   src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`} 
@@ -201,8 +219,8 @@ const Navbar = () => {
                 />
               </Link>
 
-              {/* === CENTER: Nav Links (evenly spaced) === */}
-              <div className="flex items-center gap-8 font-bold text-sm text-slate-600 mx-auto">
+              {/* === CENTER: Nav Links === */}
+              <div className="flex items-center gap-8 font-bold text-[11px] text-slate-600 mr-auto">
                 <Link
                   to="/"
                   className={location.pathname === "/" ? "text-indigo-600" : "hover:text-indigo-600 transition-colors uppercase tracking-widest"}
@@ -227,19 +245,34 @@ const Navbar = () => {
                 >
                   GRAND TESTS
                 </Link>
-
               </div>
 
-              {/* === RIGHT: Actions === */}
-              <div className="flex items-center gap-4 flex-shrink-0">
+
+              {/* === RIGHT: Nav Links (second half) + Actions === */}
+              <div className="flex items-center gap-8 ml-auto">
+                <div className="flex items-center gap-8 font-bold text-[11px] text-slate-600">
+                  <Link
+                    to="/mock-tests"
+                    className={location.pathname === "/mock-tests" ? "text-indigo-600" : "hover:text-indigo-600 transition-colors uppercase tracking-widest"}
+                  >
+                    MOCK TESTS
+                  </Link>
+                  <Link
+                    to="/grand-tests"
+                    className={location.pathname === "/grand-tests" ? "text-indigo-600" : "hover:text-indigo-600 transition-colors uppercase tracking-widest"}
+                  >
+                    GRAND TESTS
+                  </Link>
+                </div>
+
+                <div className="w-px h-5 bg-slate-200" />
+                
                 {userData ? (
                   <div className="flex items-center gap-4">
-                    {/* Divider between nav links and actions */}
-                    <div className="w-px h-5 bg-slate-200 flex-shrink-0" />
                     {showDashboardBtn && (
                       <Link
                         to={dashboardPath}
-                        className="px-5 py-2 text-xs font-black uppercase tracking-widest bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                        className="px-4 py-2 text-[10px] font-black uppercase tracking-widest bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
                       >
                         Dashboard
                       </Link>
@@ -252,7 +285,7 @@ const Navbar = () => {
                         }
                         className="flex items-center gap-3 p-1 pr-4 rounded-full border border-slate-200 bg-slate-50 hover:bg-white transition-all"
                       >
-                        <div className="w-8 h-8 rounded-full overflow-hidden bg-indigo-100 flex items-center justify-center font-black text-xs text-indigo-600">
+                        <div className="w-7 h-7 rounded-full overflow-hidden bg-indigo-100 flex items-center justify-center font-black text-[10px] text-indigo-600">
                           {userData.profilePicture ? (
                             <img
                               src={userData.profilePicture}
@@ -263,11 +296,11 @@ const Navbar = () => {
                             userData.firstname?.charAt(0).toUpperCase()
                           )}
                         </div>
-                        <span className="text-sm font-black text-slate-700 uppercase tracking-tight">
+                        <span className="text-[10px] font-black text-slate-700 uppercase tracking-tight">
                           {userData.firstname}
                         </span>
                         <ChevronDown
-                          size={14}
+                          size={12}
                           className={isProfileDropdownOpen ? "rotate-180" : ""}
                         />
                       </button>
@@ -291,16 +324,16 @@ const Navbar = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-4 font-bold text-sm">
+                  <div className="flex items-center gap-4 font-bold text-[11px]">
                     <Link
                       to="/login"
-                      className="text-slate-600 hover:text-indigo-600"
+                      className="text-slate-600 hover:text-indigo-600 uppercase tracking-widest"
                     >
                       Login
                     </Link>
                     <Link
                       to="/signup"
-                      className="px-6 py-2.5 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all transform hover:scale-105"
+                      className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all transform hover:scale-105 uppercase tracking-widest"
                     >
                       Sign Up
                     </Link>
@@ -308,6 +341,7 @@ const Navbar = () => {
                 )}
               </div>
             </div>
+
 
           </div>
         </div>

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { getImageUrl, handleImageError } from "../utils/imageHelper";
-import { Clock, BookOpen, FileText, Trophy } from "lucide-react";
+import { Clock, BookOpen, FileText, Trophy, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 const MockTestCard = ({ test, isEmbedded = false, index = 0 }) => {
@@ -194,18 +194,23 @@ const MockTestCard = ({ test, isEmbedded = false, index = 0 }) => {
         </div>
       </div>
 
+
       {/* ── FOOTER (Action Button) ── */}
       <div className="px-3 pb-3 mt-auto">
         <button
           onClick={handleAction}
-          className={`w-full py-2 ${theme.buttonBg} ${theme.buttonHover} text-white rounded-lg font-black text-[9px] uppercase tracking-[0.2em] shadow-xl transition-all active:scale-[0.97] flex items-center justify-center gap-2 group-hover:gap-3`}
+          className={`w-full py-2 ${theme.buttonBg} ${theme.buttonHover} text-white rounded-lg font-black text-[10px] uppercase tracking-[0.15em] shadow-md shadow-slate-200/50 transition-all active:scale-[0.95] flex items-center justify-center gap-1.5 group/btn whitespace-nowrap`}
         >
-          {theme.btnLabel}
-          <motion.span animate={{ x: [0, 5, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
-             →
-          </motion.span>
+          <span className="hidden sm:inline">{theme.btnLabel}</span>
+          <span className="sm:hidden">VIEW TEST</span>
+          <ChevronRight 
+            size={12} 
+            strokeWidth={4}
+            className="group-hover/btn:translate-x-0.5 transition-transform" 
+          />
         </button>
       </div>
+
     </motion.div>
   );
 };

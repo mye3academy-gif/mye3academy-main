@@ -120,7 +120,18 @@ app.get("/", (req, res) => {
 // --- 6. SERVER & SOCKET.IO SETUP ---
 const server = http.createServer(app);
 const io = new SocketIOServer(server, {
-  cors: { origin: allowedOrigins, credentials: true },
+  cors: {
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, false); // Fail silently or handle as needed
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST"]
+  },
+  allowEIO3: true // Support older clients if any
 });
 
 setIOInstance(io);

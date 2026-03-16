@@ -8,8 +8,15 @@ export const initSocket = (userId) => {
   if (!socket) {
     socket = io(import.meta.env.VITE_SERVER_URL, {
       query: { userId },
-      transports: ["websocket"], // Force WebSocket for better performance
+      transports: ["polling", "websocket"], 
       withCredentials: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      timeout: 20000,
+    });
+
+    socket.on("connect_error", (err) => {
+      console.warn("⚠️ Socket connection error, trying fallback:", err.message);
     });
 
     socket.on("connect", () => {

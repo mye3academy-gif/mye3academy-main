@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Clock, BookOpen, Unlock, Play, FileText, Trophy, CheckCircle2, ArrowRight } from "lucide-react";
+import { Clock, BookOpen, Unlock, Play, FileText, Trophy, CheckCircle2, ChevronRight } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
@@ -187,10 +187,15 @@ const PremiumTestCard = ({ test, index = 0 }) => {
       <div className="p-3 pt-0 mt-auto">
         <button
           onClick={handleAction}
-          className={`w-full py-2 ${theme.buttonBg} ${theme.buttonHover} text-white rounded-lg font-black text-[9px] uppercase tracking-[0.2em] shadow-xl transition-all active:scale-[0.97] flex items-center justify-center gap-2 group/btn`}
+          className={`w-full py-2 ${theme.buttonBg} ${theme.buttonHover} text-white rounded-lg font-black text-[10px] uppercase tracking-[0.15em] shadow-md shadow-slate-200/50 transition-all active:scale-[0.95] flex items-center justify-center gap-1.5 group/btn whitespace-nowrap`}
         >
-          {theme.btnLabel}
-          <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+          <span className="hidden sm:inline">{theme.btnLabel}</span>
+          <span className="sm:hidden">VIEW TEST</span>
+          <ChevronRight 
+            size={12} 
+            strokeWidth={4}
+            className="group-hover/btn:translate-x-0.5 transition-transform" 
+          />
         </button>
       </div>
     </motion.div>

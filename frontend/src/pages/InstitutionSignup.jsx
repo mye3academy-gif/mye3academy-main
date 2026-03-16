@@ -3,21 +3,18 @@ import { motion } from "framer-motion";
 import {
   Eye,
   EyeOff,
-  Mail,
+  Building2,
   Lock,
   User,
   ArrowLeft,
   Loader2,
   Smartphone,
-  GraduationCap,
+  Mail,
 } from "lucide-react";
-import googleImg from "../assets/google.png";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import api from "../api/axios";
 import { setUserData } from "../redux/userSlice";
-import { signInWithPopup } from "firebase/auth";
-import { auth, provider } from "../utils/firebase";
 import signupIllustration from "../assets/Gemini_Generated_Image_6fv81j6fv81j6fv8 (1).png";
 import toast from "react-hot-toast";
 
@@ -31,7 +28,7 @@ const InputField = ({
   showPass,
   togglePass,
 }) => (
-  <div className="relative w-full mb-2.5 group">
+  <div className="relative w-full mb-3 group">
     <div className="relative">
       <input
         id={id}
@@ -39,7 +36,7 @@ const InputField = ({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className="w-full px-4 py-2 bg-white border border-slate-300 rounded-xl
+        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl
                    text-slate-800 placeholder-slate-400 font-medium
                    focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 
                    outline-none transition-all duration-300 text-xs shadow-sm"
@@ -57,11 +54,10 @@ const InputField = ({
   </div>
 );
 
-const Signup = () => {
-  const [role, setRole] = useState("student");
+const InstitutionSignup = () => {
   const [formData, setFormData] = useState({
-    firstname: "",
-    lastname: "",
+    firstname: "", // Treated as Admin/Contact person name
+    lastname: "",  // Treated as Institution Name
     email: "",
     phoneNumber: "",
     password: "",
@@ -78,29 +74,6 @@ const Signup = () => {
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.id]: e.target.value });
 
-  const handleGoogleSignUp = async () => {
-    try {
-      setLoading(true);
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      const googleData = {
-        firstname: user.displayName?.split(" ")[0] || "User",
-        lastname: user.displayName?.split(" ")[1] || "",
-        email: user.email,
-        avatar: user.photoURL,
-        role,
-      };
-      const res = await api.post("/api/auth/google", googleData);
-      dispatch(setUserData(res.data));
-      toast.success(`Welcome!`);
-      navigate("/");
-    } catch (error) {
-      toast.error("Google Sign Up Failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSignUp = async () => {
     if (!formData.email || !formData.password)
       return toast.error("Details missing");
@@ -109,10 +82,10 @@ const Signup = () => {
 
     try {
       setLoading(true);
-      toast.loading("Sending OTP...", { id: "otp-loading" }); 
-      await api.post("/api/auth/signup", { ...formData, role });
+      toast.loading("Sending Verification code...", { id: "otp-loading" }); 
+      await api.post("/api/auth/signup", { ...formData, role: "institution" });
       toast.dismiss("otp-loading");
-      toast.success("OTP sent to your email!");
+      toast.success("Verification code sent to email!");
       setStep(2);
     } catch (error) {
       toast.dismiss("otp-loading");
@@ -132,21 +105,12 @@ const Signup = () => {
         otp,
       });
       dispatch(setUserData(result.data.user));
-      toast.success("Verification Successful!");
-      navigate("/");
+      toast.success("Institution Account Verified!");
+      navigate("/institution-dashboard");
     } catch (error) {
       toast.error("Verification Failed");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleResendOtp = async () => {
-    try {
-      await api.post("/api/auth/resend-otp", { email: formData.email });
-      toast.success("New OTP sent!");
-    } catch (error) {
-      toast.error("Failed to resend OTP");
     }
   };
 
@@ -164,7 +128,7 @@ const Signup = () => {
         
         <motion.div 
           layoutId="auth-form-column"
-          className="w-full lg:w-1/2 h-full flex flex-col items-center justify-center p-6 lg:p-8 bg-white overflow-y-auto relative z-20"
+          className="w-full lg:w-1/2 h-full flex flex-col items-center justify-center p-6 lg:p-10 bg-white overflow-y-auto relative z-20"
         >
           <div className="w-full max-w-[400px] flex flex-col">
             {/* Logo */}
@@ -176,18 +140,20 @@ const Signup = () => {
                 />
             </div>
 
-
             <div className="animate-in fade-in slide-in-from-left-4 duration-700">
               {step === 1 ? (
                 <>
-                  <div className="mb-3 text-center lg:text-left">
-                  <h2 className="text-lg lg:text-xl font-black text-slate-900 tracking-tight mb-1">
-                    Create Account
-                  </h2>
-                  <p className="text-slate-400 text-[10px] font-medium tracking-tight">
-                    Join thousands of students and start practicing.
-                  </p>
-                </div>
+                  <div className="mb-6 text-center">
+                    <div className="inline-flex items-center justify-center p-2 bg-indigo-50 rounded-lg mb-2">
+                       <Building2 className="text-indigo-600" size={20} />
+                    </div>
+                    <h2 className="text-xl lg:text-2xl font-black text-slate-900 tracking-tight mb-1">
+                      Institution Registration
+                    </h2>
+                    <p className="text-slate-400 text-[10px] font-medium tracking-tight">
+                      Empower your faculty with elite testing tools
+                    </p>
+                  </div>
 
                   <form onSubmit={(e) => { e.preventDefault(); handleSignUp(); }} className="space-y-1">
                     <div className="grid grid-cols-2 gap-3">
@@ -230,55 +196,36 @@ const Signup = () => {
                     </div>
 
                     <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full h-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-xs shadow-xl shadow-indigo-100 transition-all active:scale-[0.98] disabled:opacity-70 flex justify-center items-center mt-3"
-                  >
-                    {loading ? <Loader2 className="animate-spin" size={18} /> : "Create Account"}
-                  </button>
-
-                  <p className="text-center mt-4 text-slate-400 font-bold text-[10px] tracking-tight">
-                    Already have an account?{" "}
-                    <button
-                      type="button"
-                      onClick={() => navigate("/login")}
-                      className="text-indigo-600 font-black hover:underline underline-offset-4"
+                      type="submit"
+                      disabled={loading}
+                      className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-xs shadow-xl shadow-indigo-100 transition-all active:scale-[0.98] disabled:opacity-70 flex justify-center items-center mt-6"
                     >
-                      Log in
+                      {loading ? <Loader2 className="animate-spin" size={18} /> : "Create Account"}
                     </button>
-                  </p>
 
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignUp}
-                    className="w-full h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center gap-3 hover:bg-slate-50 transition-colors shadow-sm font-bold text-slate-700 active:scale-[0.98] mt-4"
-                  >
-                    <img src={googleImg} className="w-4 h-4" alt="Google" />
-                    <span className="text-[11px] font-black tracking-tight text-slate-600">Sign up with Google</span>
-                  </button>
 
-                  <div className="mt-4 text-center">
-                    <button
-                      type="button"
-                      onClick={() => navigate("/institution-signup")}
-                      className="text-[10px] font-black text-indigo-600 hover:text-indigo-800 tracking-wider uppercase transition-all"
-                    >
-                      Register as Institution
-                    </button>
-                  </div>
-                </form>
-
+                    <p className="text-center mt-6 text-slate-400 font-bold text-[10px] tracking-tight">
+                      Already registered?{" "}
+                      <button
+                        type="button"
+                        onClick={() => navigate("/institution-login")}
+                        className="text-indigo-600 font-black hover:underline underline-offset-4"
+                      >
+                        Portal Login
+                      </button>
+                    </p>
+                  </form>
                 </>
               ) : (
                 /* OTP VERIFICATION VIEW */
                 <div className="animate-in fade-in slide-in-from-right-4 duration-500">
                   <div className="mb-10 text-center lg:text-left">
                     <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-3">
-                      Verify Your <br />
-                      <span className="text-emerald-600">Email</span>
+                      Verify <br />
+                      <span className="text-indigo-600">Institution</span>
                     </h2>
                     <p className="text-slate-400 font-medium tracking-tight">
-                      Check your inbox code sent to {formData.email}
+                      Enter the security code sent to {formData.email}
                     </p>
                   </div>
 
@@ -288,7 +235,7 @@ const Signup = () => {
                       maxLength={6}
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                      className="w-full py-4 text-center text-2xl font-black tracking-[0.5em] bg-slate-50 border border-slate-200 rounded-xl text-emerald-600 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 outline-none transition-all"
+                      className="w-full py-4 text-center text-2xl font-black tracking-[0.5em] bg-slate-50 border border-slate-200 rounded-xl text-indigo-600 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 outline-none transition-all"
                       placeholder="000000"
                     />
 
@@ -297,7 +244,7 @@ const Signup = () => {
                       disabled={loading}
                       className="w-full h-12 bg-slate-900 text-white rounded-xl font-black transition-all active:scale-[0.98] flex justify-center items-center shadow-lg"
                     >
-                      {loading ? <Loader2 className="animate-spin" size={20} /> : "Verify & Started"}
+                      {loading ? <Loader2 className="animate-spin" size={20} /> : "Verify & Complete Setup"}
                     </button>
 
                     <div className="flex justify-between items-center px-1">
@@ -307,13 +254,6 @@ const Signup = () => {
                         className="text-xs font-bold text-slate-400 hover:text-indigo-600 flex items-center gap-1"
                       >
                         <ArrowLeft size={14} /> Back
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleResendOtp}
-                        className="text-xs font-bold text-emerald-600 hover:underline"
-                      >
-                        Resend OTP
                       </button>
                     </div>
                   </form>
@@ -326,32 +266,32 @@ const Signup = () => {
         {/* RIGHT COLUMN - HERO */}
         <motion.div 
           layoutId="auth-hero-column"
-          className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#5959E0FF]"
+          className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#0A0A23]"
         >
-          <div className="absolute top-[-5%] right-[-5%] w-[40%] h-[40%] bg-blue-400/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-400/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-[-5%] right-[-5%] w-[40%] h-[40%] bg-blue-900/20 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-900/10 rounded-full blur-3xl"></div>
           
-          <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-8 lg:p-12">
+          <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-8 lg:p-12 text-white">
             <div className="relative w-full flex-1 flex items-center justify-center animate-float">
                <img
                  src={signupIllustration}
-                 alt="Signup Illustration"
-                 className="max-w-full max-h-[85%] object-contain drop-shadow-[0_25px_25px_rgba(0,0,0,0.15)]"
+                 alt="Institution Registration"
+                 className="max-w-[80%] max-h-full object-contain drop-shadow-[0_25px_25px_rgba(0,0,0,0.4)]"
                />
             </div>
             
             <div className="-mt-6 text-center">
-               <h3 className="text-xl lg:text-2xl font-black tracking-[0.05em] uppercase text-white drop-shadow-lg">
-                 Excellence <span className="text-indigo-200">Awaits</span>
+               <h3 className="text-xl lg:text-3xl font-black tracking-tight uppercase text-white drop-shadow-lg">
+                 Scale Your <span className="text-indigo-400">Impact</span>
                </h3>
-               <div className="w-8 h-1 bg-white/20 mx-auto my-2 rounded-full"></div>
-               <p className="text-indigo-100/80 text-[10px] font-bold max-w-xs mx-auto tracking-wide">
-                 Personalize your learning experience and track your evolution.
+               <div className="w-12 h-1 bg-white/20 mx-auto my-4 rounded-full"></div>
+               <p className="text-slate-300 text-xs font-bold max-w-xs mx-auto tracking-wide leading-relaxed">
+                 Join our partner network and provide world-class mock tests to your entire student base.
                </p>
             </div>
           </div>
 
-          <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-white/5 to-transparent pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
         </motion.div>
 
       </motion.div>
@@ -359,5 +299,4 @@ const Signup = () => {
   );
 };
 
-
-export default Signup;
+export default InstitutionSignup;

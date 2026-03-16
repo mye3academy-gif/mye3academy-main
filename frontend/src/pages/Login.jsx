@@ -147,7 +147,7 @@ const Login = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-[#96D0F3FF] flex items-center justify-center p-4 md:p-8 lg:p-12">
+    <div className="min-h-screen bg-[#96D0F3FF] flex items-center justify-center p-0 md:p-8 lg:p-12">
       <motion.div 
         layout
         initial={false}
@@ -155,22 +155,23 @@ const Login = () => {
         transition={{ 
           layout: { duration: 8, ease: [0.25, 1, 0.5, 1] }
         }}
-        className="w-full max-w-[1240px] h-full max-h-[900px] bg-white rounded-[1.5rem] lg:rounded-[2.5rem] shadow-2xl flex flex-col lg:flex-row overflow-hidden"
+        className="w-full max-w-[1240px] h-screen md:h-full md:max-h-[900px] bg-white md:rounded-[1.5rem] lg:rounded-[2.5rem] shadow-2xl flex flex-col lg:flex-row overflow-hidden"
       >
         
         <motion.div 
           layoutId="auth-form-column"
-          className="w-full lg:w-1/2 h-full flex flex-col items-center justify-center p-6 lg:p-10 bg-white overflow-hidden relative z-20"
+          className="w-full lg:w-1/2 h-full flex flex-col items-center justify-center p-6 lg:p-10 bg-white overflow-y-auto relative z-20"
         >
           <div className="w-full max-w-[400px] flex flex-col">
             {/* Logo */}
-            <div className="mb-4 flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
+            <div className="mb-6 flex items-center justify-center cursor-pointer" onClick={() => navigate("/")}>
                 <img 
                   src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`} 
                   alt="Mye3 Logo" 
-                  className="h-11 w-auto object-contain"
+                  className="h-14 w-auto object-contain"
                 />
             </div>
+
 
             <div className="animate-in fade-in slide-in-from-left-4 duration-700">
               {step === 1 ? (
@@ -229,24 +230,6 @@ const Login = () => {
                     {loading ? <Loader2 className="animate-spin" size={18} /> : "Sign In"}
                   </button>
 
-                  <div className="relative py-3">
-                    <div className="absolute inset-0 flex items-center px-2">
-                      <div className="w-full border-t border-slate-100"></div>
-                    </div>
-                    <div className="relative flex justify-center text-[9px] font-black uppercase tracking-widest text-slate-300">
-                      <span className="px-3 bg-white">or</span>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleGoogleLogin}
-                    className="w-full h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center gap-3 hover:bg-slate-50 transition-colors shadow-sm font-bold text-slate-700 active:scale-[0.98]"
-                  >
-                    <img src={googleImg} className="w-4 h-4" alt="Google" />
-                    <span className="text-[11px] font-black tracking-tight text-slate-600">Sign in with Google</span>
-                  </button>
-
                   <p className="text-center mt-4 text-slate-400 font-bold text-[10px] tracking-tight">
                     Don't have an account?{" "}
                     <button
@@ -257,7 +240,27 @@ const Login = () => {
                       Sign Up
                     </button>
                   </p>
+
+                  <button
+                    type="button"
+                    onClick={handleGoogleLogin}
+                    className="w-full h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center gap-3 hover:bg-slate-50 transition-colors shadow-sm font-bold text-slate-700 active:scale-[0.98] mt-4"
+                  >
+                    <img src={googleImg} className="w-4 h-4" alt="Google" />
+                    <span className="text-[11px] font-black tracking-tight text-slate-600">Sign in with Google</span>
+                  </button>
+
+                  <div className="mt-4 text-center">
+                    <button
+                      type="button"
+                      onClick={() => navigate("/institution-login")}
+                      className="text-[10px] font-black text-indigo-600 hover:text-indigo-800 tracking-wider uppercase transition-all"
+                    >
+                      Login as Institution
+                    </button>
+                  </div>
                 </form>
+
                 </>
               ) : (
                 /* OTP VERIFICATION VIEW */
