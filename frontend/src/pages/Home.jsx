@@ -22,6 +22,7 @@ import TestimonialsSection from "../components/sections/TestimonialsSection";
 
 import MockTestCard from "../components/MockTestCard";
 import PremiumTestCard from "../components/PremiumTestCard";
+import { getImageUrl, handleImageError } from "../utils/imageHelper";
 
 import { fetchCategories } from "../redux/categorySlice";
 import { fetchPublicMockTests, fetchUpcomingExams } from "../redux/studentSlice";
@@ -264,8 +265,81 @@ const Home = () => {
           onSubmit={handleSearch}
         />
 
+        {/* MOBILE QUICK NAV - Circular Featured Tests */}
+        <section className="sm:hidden bg-slate-50/80 pt-2 pb-2 border-b border-slate-200">
+          <div className="px-6 flex flex-col items-center">
+            {/* Section Header Line */}
+            <div className="w-full flex items-center gap-4 mb-4">
+              <div className="h-[1.5px] flex-1 bg-slate-200 rounded-full"></div>
+              <h2 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">
+                Premium Featured Tests
+              </h2>
+              <div className="h-[1.5px] flex-1 bg-slate-200 rounded-full"></div>
+            </div>
+
+            <div className="flex justify-around w-full max-w-[320px]">
+              {(() => {
+                const paidTests = publicMocktests.filter(t => t.title && (!t.isFree && t.isFree !== 'true'));
+                const featured = [];
+                
+                // Get one Grand test
+                const grand = paidTests.find(t => t.isGrandTest);
+                if (grand) featured.push(grand);
+                
+                // Get one regular Mock test
+                const mock = paidTests.find(t => !t.isGrandTest);
+                if (mock) featured.push(mock);
+                
+                // Fill up to 3
+                paidTests.forEach(t => {
+                  if (featured.length < 3 && !featured.find(f => f._id === t._id)) {
+                    featured.push(t);
+                  }
+                });
+
+                return featured.map((test, idx) => {
+                  const effectivePrice = test.discountPrice > 0 && Number(test.discountPrice) < Number(test.price)
+                    ? Number(test.discountPrice)
+                    : Number(test.price || 0);
+                  
+                  const testImg = test.thumbnail 
+                    ? getImageUrl(test.thumbnail)
+                    : (test.category && (test.category.icon || test.category.image)) 
+                      ? getImageUrl(test.category.icon || test.category.image) 
+                      : `${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`;
+
+                  return (
+                    <button 
+                      key={test._id || idx}
+                      onClick={() => navigate(`/all-tests/${test._id}`)}
+                      className="flex flex-col items-center gap-3 active:scale-90 transition-all group w-[100px]"
+                    >
+                      <div className={`w-20 h-20 rounded-full bg-white border-2 ${test.isGrandTest ? 'border-rose-200' : 'border-blue-200'} shadow-[0_8px_20px_rgba(0,0,0,0.08)] flex items-center justify-center transition-all overflow-hidden`}>
+                        <img 
+                          src={testImg} 
+                          alt={test.title}
+                          className="w-full h-full object-cover"
+                          onError={handleImageError}
+                        />
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-[9px] font-black text-slate-800 uppercase tracking-tighter text-center line-clamp-1 leading-none h-3 overflow-hidden">
+                          {test.title}
+                        </span>
+                        <span className="text-[11px] font-black text-rose-600">
+                          ₹{effectivePrice}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        </section>
+
         {/* CATEGORIES */}
-        <div id="categories-section" className="bg-slate-100 pt-10 pb-6 relative">
+        <div id="categories-section" className="bg-slate-100 relative">
           <div className="relative z-10">
             <CategoriesSection
               categories={publicMocktests}
@@ -282,7 +356,7 @@ const Home = () => {
         />
 
         {/* FEATURES */}
-        <div className="bg-slate-100 py-6">
+        <div className="bg-slate-100 py-4">
           <FeaturesSection />
         </div>
 

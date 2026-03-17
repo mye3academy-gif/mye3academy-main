@@ -148,7 +148,7 @@ const InstitutionSidebar = () => {
       </nav>
 
       {/* FOOTER */}
-      <div className="mt-auto p-4 border-t border-slate-100 bg-slate-50/50">
+      <div className="mt-8 md:mt-auto p-4 border-t border-slate-100 bg-slate-50/50">
         <button 
             onClick={handleLogout}
             disabled={isLoggingOut}
@@ -160,7 +160,7 @@ const InstitutionSidebar = () => {
             <LogOut size={20} className="shrink-0" />
             {expandedSidebar && (
                 <span className="text-[13px] font-bold whitespace-nowrap">
-                    {isLoggingOut ? "Signing out..." : "Secure Logout"}
+                    {isLoggingOut ? "Signing out..." : "Logout"}
                 </span>
             )}
         </button>

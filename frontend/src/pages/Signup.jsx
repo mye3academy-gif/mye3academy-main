@@ -164,7 +164,7 @@ const Signup = () => {
         
         <motion.div 
           layoutId="auth-form-column"
-          className="w-full lg:w-1/2 h-full flex flex-col items-center justify-center p-6 lg:p-8 bg-white overflow-y-auto relative z-20"
+          className="w-full lg:w-1/2 h-full flex flex-col items-center justify-center p-6 lg:p-8 bg-white relative z-20 overflow-hidden"
         >
           <div className="w-full max-w-[400px] flex flex-col">
             {/* Logo */}
@@ -248,22 +248,13 @@ const Signup = () => {
                     </button>
                   </p>
 
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignUp}
-                    className="w-full h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center gap-3 hover:bg-slate-50 transition-colors shadow-sm font-bold text-slate-700 active:scale-[0.98] mt-4"
-                  >
-                    <img src={googleImg} className="w-4 h-4" alt="Google" />
-                    <span className="text-[11px] font-black tracking-tight text-slate-600">Sign up with Google</span>
-                  </button>
-
-                  <div className="mt-4 text-center">
+                  <div className="mt-6 text-center">
                     <button
                       type="button"
                       onClick={() => navigate("/institution-signup")}
-                      className="text-[10px] font-black text-indigo-600 hover:text-indigo-800 tracking-wider uppercase transition-all"
+                      className="text-[11px] font-black text-indigo-600 hover:text-indigo-800 tracking-wider uppercase underline underline-offset-4 transition-all"
                     >
-                      Register as Institution
+                      SIGN IN AS INSTITUTION
                     </button>
                   </div>
                 </form>
