@@ -254,7 +254,7 @@ const Signup = () => {
                       onClick={() => navigate("/institution-signup")}
                       className="text-[11px] font-black text-indigo-600 hover:text-indigo-800 tracking-wider uppercase underline underline-offset-4 transition-all"
                     >
-                      SIGN IN AS INSTITUTION
+                      SIGN UP AS INSTITUTION
                     </button>
                   </div>
                 </form>
