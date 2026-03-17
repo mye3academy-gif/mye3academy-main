@@ -151,7 +151,7 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#96D0F3FF] flex items-center justify-center p-0 md:p-8 lg:p-12">
+    <div className="min-h-[100dvh] bg-[#96D0F3FF] flex items-center justify-center p-0 md:p-8 lg:p-12">
       <motion.div 
         layout
         initial={false}

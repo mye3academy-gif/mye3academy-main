@@ -87,7 +87,7 @@ const InstitutionLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#96D0F3FF] flex items-center justify-center p-0 md:p-8 lg:p-12">
+    <div className="min-h-[100dvh] bg-[#96D0F3FF] flex items-center justify-center p-0 md:p-8 lg:p-12">
       <motion.div 
         layout
         initial={false}
@@ -95,7 +95,7 @@ const InstitutionLogin = () => {
         transition={{ 
           layout: { duration: 8, ease: [0.25, 1, 0.5, 1] }
         }}
-        className="w-full max-w-[1240px] h-screen md:h-full md:max-h-[900px] bg-white md:rounded-[1.5rem] lg:rounded-[2.5rem] shadow-2xl flex flex-col lg:flex-row overflow-hidden"
+        className="w-full max-w-[1240px] h-[100dvh] md:h-full md:max-h-[900px] bg-white md:rounded-[1.5rem] lg:rounded-[2.5rem] shadow-2xl flex flex-col lg:flex-row overflow-hidden"
       >
         
         <motion.div 

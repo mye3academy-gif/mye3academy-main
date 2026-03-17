@@ -104,12 +104,20 @@ const Login = () => {
     try {
       setLoading(true);
       const result = await api.post("/api/auth/login", { email, password });
+      
+      const role = result.data.role;
+
+      // Block institutions from student login
+      if (role === 'institution') {
+        toast.error("Please use the Institution Portal to login");
+        setLoading(false);
+        return;
+      }
+
       dispatch(setUserData(result.data));
       toast.success("Welcome back!");
       
-      const role = result.data.role;
       if (role === 'admin') navigate('/admin');
-      else if (role === 'institution') navigate('/institution-dashboard');
       else if (role === 'instructor') navigate('/instructor-dashboard');
       else navigate('/');
     } catch (error) {
@@ -147,7 +155,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#96D0F3FF] flex items-center justify-center p-0 md:p-8 lg:p-12">
+    <div className="min-h-[100dvh] bg-[#96D0F3FF] flex items-center justify-center p-0 md:p-8 lg:p-12">
       <motion.div 
         layout
         initial={false}
