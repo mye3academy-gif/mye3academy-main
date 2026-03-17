@@ -159,12 +159,12 @@ const Signup = () => {
         transition={{ 
           layout: { duration: 8, ease: [0.25, 1, 0.5, 1] }
         }}
-        className="w-full max-w-[1240px] h-screen md:h-full md:max-h-[900px] bg-white md:rounded-[1.5rem] lg:rounded-[2.5rem] shadow-2xl flex flex-col lg:flex-row-reverse overflow-hidden"
+        className="w-full max-w-[1240px] h-[100dvh] md:h-full md:max-h-[900px] bg-white md:rounded-[1.5rem] lg:rounded-[2.5rem] shadow-2xl flex flex-col lg:flex-row-reverse overflow-hidden"
       >
         
         <motion.div 
           layoutId="auth-form-column"
-          className="w-full lg:w-1/2 h-full flex flex-col items-center justify-center p-6 lg:p-8 bg-white relative z-20 overflow-hidden"
+          className="w-full lg:w-1/2 h-full flex flex-col items-center justify-center p-6 lg:p-8 bg-white relative z-20 overflow-y-auto lg:overflow-hidden custom-scrollbar"
         >
           <div className="w-full max-w-[400px] flex flex-col">
             {/* Logo */}

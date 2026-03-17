@@ -110,6 +110,15 @@ const InstiSidebar = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
+    if (showMobileSidebar) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => { document.body.style.overflow = "unset"; };
+  }, [showMobileSidebar]);
+
+  useEffect(() => {
     const newOpen = {};
     navItems.forEach((l1) => {
       if (l1.children) {
@@ -159,7 +168,7 @@ const InstiSidebar = () => {
       )}
 
       <aside
-        className={`bg-[#a332ff] fixed top-0 left-0 h-screen w-72 z-50 transition-transform duration-300 ease-in-out
+        className={`bg-[#a332ff] fixed top-0 left-0 h-[100dvh] w-72 z-50 transition-transform duration-300 ease-in-out
         ${showMobileSidebar ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
       >
         <div className="px-6 py-6 border-b border-white/10">

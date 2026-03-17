@@ -82,6 +82,15 @@ const Navbar = () => {
     setIsProfileDropdownOpen(false);
   }, [location]);
 
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => { document.body.style.overflow = "unset"; };
+  }, [isMobileMenuOpen]);
+
   const handleLogout = () => {
     dispatch(logoutUser());
     navigate("/login");
@@ -363,7 +372,7 @@ const Navbar = () => {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 h-screen w-[280px] bg-white shadow-2xl z-[110] md:hidden flex flex-col"
+              className="fixed right-0 top-0 h-[100dvh] w-[280px] bg-white shadow-2xl z-[110] md:hidden flex flex-col"
             >
               <div className="p-6 flex justify-between items-center border-b border-slate-50">
                 <span className="text-xs font-black text-indigo-600 uppercase tracking-widest">

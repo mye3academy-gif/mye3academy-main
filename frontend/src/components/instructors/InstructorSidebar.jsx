@@ -41,6 +41,15 @@ const InstructorSidebar = () => {
   const leaveTimer = useRef(null);
 
   useEffect(() => {
+    if (isMobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => { document.body.style.overflow = "unset"; };
+  }, [isMobileOpen]);
+
+  useEffect(() => {
     if (!instructorProfile) dispatch(fetchInstructorProfile());
   }, [dispatch, instructorProfile]);
 
@@ -205,7 +214,7 @@ const InstructorSidebar = () => {
               initial={{ x: -280 }}
               animate={{ x: 0 }}
               exit={{ x: -280 }}
-              className="fixed left-0 top-0 h-screen z-[160] md:hidden w-[280px]"
+              className="fixed left-0 top-0 h-[100dvh] z-[160] md:hidden w-[280px]"
             >
               <div className="h-full bg-white relative">
                 <button 

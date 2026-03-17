@@ -87,6 +87,15 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
     }
   }, [location.pathname]);
 
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => { document.body.style.overflow = "unset"; };
+  }, [mobileOpen]);
+
   // Force expanded mode on mobile to show all menu labels in the drawer
   const expandedSidebar = isMobile ? true : (isPinned || isHovering);
 
@@ -331,9 +340,9 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="absolute left-0 top-0 h-screen w-[280px] bg-white shadow-2xl z-[10000]"
+              className="absolute left-0 top-0 h-[100dvh] w-[280px] bg-white shadow-2xl z-[10000]"
             >
-              <div className="h-full w-full overflow-y-auto overflow-x-hidden">
+              <div className="h-full w-full overflow-y-auto overflow-x-hidden custom-scrollbar">
                 {SidebarContent}
               </div>
             </motion.div>
