@@ -140,21 +140,26 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
 
 
   const SidebarContent = (
-    <div
-      className={`h-full bg-white flex flex-col shadow-[12px_0_40px_rgba(33,33,33,0.03)] border-r border-slate-100 ${isMobile ? 'w-[280px]' : (expandedSidebar ? 'w-[280px]' : 'w-[88px]')} transition-all duration-300`}
+    <motion.div
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+      animate={{ width: expandedSidebar ? 280 : 88 }}
+      transition={{ type: "spring", stiffness: 140, damping: 20, mass: 0.8 }}
+      className="relative h-full bg-white flex flex-col z-[100]"
     >
       {/* BRAND SECTION */}
       <div className="px-4 py-8 flex items-center gap-2">
-        <Link
-          to="/"
-          className="shrink-0 cursor-pointer hover:rotate-2 transition-transform"
+        <motion.div 
+          onClick={() => navigate("/")}
+          animate={{ width: expandedSidebar ? "auto" : "40px" }}
+          className="shrink-0 cursor-pointer active:scale-95 transition-all duration-300 overflow-hidden"
         >
           <img 
             src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`} 
             alt="Mye3 Logo" 
-            className="h-10 w-auto object-contain mx-auto"
+            className="h-10 w-auto object-contain object-left"
           />
-        </Link>
+        </motion.div>
         <AnimatePresence mode="wait">
           {expandedSidebar && (
             <motion.div
@@ -312,7 +317,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
           )}
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 
   return (

@@ -77,7 +77,7 @@ const HeroSection = () => {
           </div>
         </div>
 
-        <div className="hidden lg:block max-w-6xl mx-auto px-6 lg:px-8 w-full md:pt-20 pt-10 pb-12 md:pb-0">
+        <div className="hidden lg:block max-w-6xl mx-auto px-6 lg:px-8 w-full md:pt-32 pt-10 pb-12 md:pb-0">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-4 items-center text-left w-full">
 
             {/* DESKTOP ONLY TEXT */}

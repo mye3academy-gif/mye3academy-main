@@ -14,6 +14,9 @@ import {
   Trophy,
   Home,
   CheckCircle,
+  Trash2,
+  ClipboardList,
+  HelpCircle,
 } from "lucide-react";
 
 // 1. Base URL configuration (Used for image paths)
@@ -103,7 +106,7 @@ const Timer = ({ expiryTimestamp, onTimeUp }) => {
 /* --------------------------------------
     QUESTION RENDERER
 -------------------------------------- */
-const QuestionRenderer = ({ question, answers, handleAnswer }) => {
+const QuestionRenderer = ({ question, answers, handleAnswer, isMarked, toggleMark }) => {
   if (!question) return null;
   const qId = question.id || question._id;
 
@@ -170,9 +173,12 @@ const QuestionRenderer = ({ question, answers, handleAnswer }) => {
       {/* ----------------------------------------------------
           MAIN QUESTION TEXT
       ----------------------------------------------------- */}
-      <h3 className="text-xl font-bold text-gray-800">
-        Q: {question.title || question.questionText}
-      </h3>
+      <div className="flex justify-between items-start gap-4">
+        <h3 className="text-xl font-bold text-gray-800 leading-tight">
+          Q: {question.title || question.questionText}
+        </h3>
+        {/* Mark for review button removed per user request */}
+      </div>
 
       {/* Question Image */}
       {question.questionImageUrl && (
@@ -200,22 +206,22 @@ const QuestionRenderer = ({ question, answers, handleAnswer }) => {
             <button
               key={idx}
               onClick={() => handleAnswer(qId, "mcq", idx)}
-              className={`w-full text-left p-4 rounded-lg flex items-center space-x-4 transition-all duration-150 border-2 ${chosen
-                  ? "bg-cyan-100 border-cyan-500 shadow-md"
-                  : "bg-white border-gray-300 hover:bg-gray-50"
+              className={`w-full text-left p-4 rounded-lg flex items-center space-x-4 transition-all duration-150 border-2 mb-3 last:mb-0 ${chosen
+                  ? "bg-cyan-100 border-cyan-500 shadow-md scale-[1.01]"
+                  : "bg-white border-gray-200 hover:border-cyan-200 hover:bg-slate-50"
                 }`}
             >
               <span
-                className={`w-6 h-6 flex items-center justify-center rounded-full font-bold text-sm flex-shrink-0 ${chosen
+                className={`w-7 h-7 flex items-center justify-center rounded-full font-bold text-xs flex-shrink-0 ${chosen
                     ? "bg-cyan-600 text-white"
-                    : "bg-gray-200 text-gray-600"
+                    : "bg-gray-100 text-gray-500 border border-gray-200"
                   }`}
               >
                 {optionLabel}
               </span>
 
               <div className="flex-grow">
-                <span className="text-base text-gray-800">
+                <span className={`text-base font-semibold ${chosen ? "text-cyan-900" : "text-gray-700"}`}>
                   {opt.text || `Option ${optionLabel}`}
                 </span>
 
@@ -269,12 +275,15 @@ const QuestionNavigationPanel = ({
   currentIndex,
   setCurrentIndex,
   answers,
+  markedForReview,
+  viewedQuestions,
   isMobile,
   onClose,
   expiryTimestamp,
   onTimeUp,
 }) => {
   const getQuestionStatus = (qid) => {
+    if (markedForReview?.has(qid)) return "marked";
     const answer = answers[qid];
     if (
       answer?.selected?.length ||
@@ -282,14 +291,17 @@ const QuestionNavigationPanel = ({
     ) {
       return "answered";
     }
+    if (viewedQuestions?.has(qid)) return "viewed";
     return "unanswered";
   };
 
   const statusMap = {
-    answered: "bg-green-500 text-white",
-    unanswered: "bg-red-500 text-white",
-    current: "bg-cyan-600 text-white ring-4 ring-cyan-200",
-    default: "bg-gray-100 text-gray-700 hover:bg-gray-200",
+    answered: "bg-emerald-500 text-white shadow-emerald-100",
+    unanswered: "bg-red-500 text-white shadow-red-100",
+    marked: "bg-purple-600 text-white shadow-purple-100 scale-105",
+    viewed: "bg-slate-300 text-slate-700",
+    current: "bg-indigo-600 text-white ring-4 ring-indigo-100 scale-110 z-10",
+    default: "bg-white text-slate-400 border border-slate-200",
   };
 
   const handleNavClick = (index) => {
@@ -304,68 +316,81 @@ const QuestionNavigationPanel = ({
 
   return (
     <div
-      className={`flex flex-col p-4 h-full overflow-y-auto ${isMobile ? "bg-white" : "bg-gray-50"}`}
+      className={`flex flex-col p-4 h-full overflow-y-auto ${isMobile ? "bg-white" : "bg-slate-50/50"}`}
     >
-      <h3 className="text-xl font-bold mb-4 text-gray-800 flex justify-between items-center">
-        Question Palette
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-widest">
+          Question Palette
+        </h3>
         {isMobile && (
           <button
             onClick={onClose}
-            className="text-gray-500 p-1 rounded-full hover:bg-gray-100"
+            className="text-slate-400 p-2 rounded-xl hover:bg-slate-100 transition-colors"
           >
             <X size={20} />
           </button>
         )}
-      </h3>
+      </div>
+
       {/* Exam Lockdown: Timer relocated from header to sidebar */}
-      <div className="mb-4">
+      <div className="mb-6">
         <Timer
           expiryTimestamp={expiryTimestamp}
           onTimeUp={onTimeUp}
         />
       </div>
-      <div className="grid grid-cols-2 gap-2 text-xs font-medium mb-4 p-3 bg-white rounded-lg shadow-sm">
-        <div className="flex items-center">
-          <span className="w-4 h-4 rounded-full bg-green-500 mr-2 flex-shrink-0"></span>
-          Answered (
-          {
-            actionableQuestions.filter(
-              (q) => getQuestionStatus(q.id || q._id) === "answered",
-            ).length
-          }
-          )
+
+      <div className="grid grid-cols-2 gap-x-2 gap-y-3 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm mb-6">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm"></div>
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Answered</span>
+          <span className="text-[10px] font-black text-emerald-600 ml-auto">
+            {actionableQuestions.filter((q) => getQuestionStatus(q.id || q._id) === "answered").length}
+          </span>
         </div>
-        <div className="flex items-center">
-          <span className="w-4 h-4 rounded-full bg-red-500 mr-2 flex-shrink-0"></span>
-          Unanswered (
-          {
-            actionableQuestions.filter(
-              (q) => getQuestionStatus(q.id || q._id) === "unanswered",
-            ).length
-          }
-          )
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-purple-600 shadow-sm"></div>
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Skipped / Doubtful</span>
+          <span className="text-[10px] font-black text-purple-600 ml-auto">
+            {actionableQuestions.filter((q) => getQuestionStatus(q.id || q._id) === "marked").length}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-red-500 shadow-sm"></div>
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Unanswered</span>
+          <span className="text-[10px] font-black text-red-600 ml-auto">
+            {actionableQuestions.filter((q) => getQuestionStatus(q.id || q._id) === "unanswered" || getQuestionStatus(q.id || q._id) === "viewed").length}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-slate-300 shadow-sm"></div>
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Viewed</span>
+          <span className="text-[10px] font-black text-slate-500 ml-auto">
+             {viewedQuestions?.size || 0}
+          </span>
         </div>
       </div>
-      <div className="grid grid-cols-5 gap-3 flex-grow content-start">
+
+      <div className="grid grid-cols-5 gap-3 content-start">
         {actionableQuestions.map((q, index) => {
           const qId = q.id || q._id;
           const status = getQuestionStatus(qId);
           let colorClass = statusMap.default;
 
-          if (questions.indexOf(q) === currentIndex)
-            colorClass = statusMap.current;
+          if (questions.indexOf(q) === currentIndex) colorClass = statusMap.current;
+          else if (status === "marked") colorClass = statusMap.marked;
           else if (status === "answered") colorClass = statusMap.answered;
+          else if (status === "viewed") colorClass = statusMap.viewed;
           else if (status === "unanswered") colorClass = statusMap.unanswered;
 
           return (
             <button
               key={qId}
               onClick={() => {
-                // Find the true index in the full list
                 const trueIndex = questions.indexOf(q);
                 handleNavClick(trueIndex);
               }}
-              className={`h-10 w-10 flex items-center justify-center font-bold rounded-lg transition-colors duration-150 shadow-md ${colorClass}`}
+              className={`h-11 w-11 flex items-center justify-center text-[13px] font-black rounded-xl transition-all duration-200 shadow-sm active:scale-90 ${colorClass}`}
             >
               {index + 1}
             </button>
@@ -409,21 +434,16 @@ const WriteMocktest = () => {
   const [selectedSubject, setSelectedSubject] = useState("all");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
+  const [viewedQuestions, setViewedQuestions] = useState(new Set());
+  const [markedForReview, setMarkedForReview] = useState(new Set());
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isNavOpen, setIsNavOpen] = useState(false);
+  const [isTimeOver, setIsTimeOver] = useState(false);
   const isSubmittedRef = React.useRef(false); // tracks if exam is done
   const endsAt = attempt?.endsAt;
 
-  const handleAnswer = useCallback((qid, type, value) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [qid]: {
-        selected: type === "mcq" ? [value] : prev[qid]?.selected || [],
-        manual: type === "manual" ? value : prev[qid]?.manual || "",
-      },
-    }));
-  }, []);
-
+  // --- DERIVED STATE ---
   const isFreeTest = useMemo(() => {
     const price = attempt?.mocktestId?.price;
     if (price === undefined || price === null) return false;
@@ -458,12 +478,14 @@ const WriteMocktest = () => {
   }, [filteredQuestions, currentIndex]);
 
   const navigationQuestions = useMemo(() => {
-    return filteredQuestions;
-  }, [filteredQuestions]);
+    if (!attempt || !attempt.questions) return [];
+    return attempt.questions;
+  }, [attempt]);
 
   const actionableQuestions = useMemo(() => {
-    return filteredQuestions.filter(q => q.questionType !== "passage");
-  }, [filteredQuestions]);
+    if (!attempt || !attempt.questions) return [];
+    return attempt.questions.filter(q => q.questionType !== "passage");
+  }, [attempt]);
 
   const currentActionableIndex = useMemo(() => {
     if (!current || current.questionType === "passage") return -1;
@@ -473,12 +495,55 @@ const WriteMocktest = () => {
   const totalAnswered = useMemo(() => {
     return actionableQuestions.filter((q) => {
       const qId = q.id || q._id;
+      const ans = answers[qId];
       return (
-        answers[qId]?.selected?.length ||
-        (answers[qId]?.manual && answers[qId].manual.trim().length > 0)
+        ans?.selected?.length > 0 ||
+        (ans?.manual && ans.manual.trim().length > 0)
       );
     }).length;
   }, [actionableQuestions, answers]);
+
+  const hasAnsweredCurrent = useMemo(() => {
+    if (!current || (current.id || current._id) === undefined) return false;
+    const qId = current.id || current._id;
+    const ans = answers[qId];
+    return (
+      ans?.selected?.length > 0 ||
+      (ans?.manual && ans.manual.trim().length > 0)
+    );
+  }, [current, answers]);
+
+  // Track viewed questions (actionable only)
+  useEffect(() => {
+    if (current && current.questionType !== "passage") {
+      const qId = current.id || current._id;
+      setViewedQuestions((prev) => {
+        if (prev.has(qId)) return prev;
+        const next = new Set(prev);
+        next.add(qId);
+        return next;
+      });
+    }
+  }, [current]);
+
+  const handleAnswer = useCallback((qid, type, value) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [qid]: {
+        selected: type === "mcq" ? [value] : prev[qid]?.selected || [],
+        manual: type === "manual" ? value : prev[qid]?.manual || "",
+      },
+    }));
+  }, []);
+
+  const toggleMarkForReview = useCallback((qid) => {
+    setMarkedForReview((prev) => {
+      const next = new Set(prev);
+      if (next.has(qid)) next.delete(qid);
+      else next.add(qid);
+      return next;
+    });
+  }, []);
 
   // Result Modal State
   const [showResultModal, setShowResultModal] = useState(false);
@@ -553,6 +618,7 @@ const WriteMocktest = () => {
   );
 
   const handleTimeUp = useCallback(() => {
+    setIsTimeOver(true);
     toast.error("Time up! Auto-submitting...");
     exitFullscreen();
     handleSubmit(true);
@@ -714,10 +780,129 @@ const WriteMocktest = () => {
             <p className="text-[11px] text-red-500 font-bold mb-6">
               Warning {tabViolations} / {MAX_VIOLATIONS}
             </p>
-            <button
-              onClick={enterFullscreen}
-              className="w-full py-3 bg-[#21b731] text-white text-[11px] font-black uppercase tracking-widest hover:bg-[#1a9227] transition-colors shadow-lg"
-            >Continue Exam</button>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={enterFullscreen}
+                className="w-full py-3 bg-[#21b731] text-white text-[11px] font-black uppercase tracking-widest hover:bg-[#1a9227] transition-colors shadow-lg"
+              >Continue Exam</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- PREVIEW MODAL --- */}
+      {showPreviewModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-lg p-8 border border-slate-100 overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50/50 rounded-full blur-3xl -z-10 -translate-y-1/2 translate-x-1/2"></div>
+            
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center shadow-inner">
+                <ClipboardList className="w-7 h-7 text-indigo-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">Exam Summary</h2>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">Final Review Before Submission</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Questions</p>
+                <p className="text-2xl font-black text-slate-800">{actionableQuestions.length}</p>
+              </div>
+              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Answered</p>
+                <p className="text-2xl font-black text-emerald-700">
+                   {actionableQuestions.filter(q => {
+                      const qid = q.id || q._id;
+                      return !markedForReview.has(qid) && (answers[qid]?.selected?.length > 0 || answers[qid]?.manual?.trim());
+                   }).length}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  const firstSkipped = actionableQuestions.find(q => markedForReview.has(q.id || q._id));
+                  if (firstSkipped) {
+                    setSelectedSubject("all");
+                    // Use a functional update or wait for state if needed, but here simple reset works
+                    setTimeout(() => {
+                      setCurrentIndex(attempt.questions.indexOf(firstSkipped));
+                      setShowPreviewModal(false);
+                    }, 0);
+                  }
+                }}
+                className="p-4 bg-purple-50 rounded-2xl border border-purple-100 text-left hover:bg-purple-100 hover:shadow-md transition-all group"
+              >
+                <div className="flex justify-between items-start">
+                  <p className="text-[10px] font-black text-purple-600 uppercase tracking-widest mb-1">Skipped / Doubtful</p>
+                  <Eye className="w-3 h-3 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <p className="text-2xl font-black text-purple-700">{markedForReview.size}</p>
+              </button>
+              <button
+                onClick={() => {
+                  const firstUnanswered = actionableQuestions.find(q => {
+                    const qId = q.id || q._id;
+                    const ans = answers[qId];
+                    return !markedForReview.has(qId) && !(ans?.selected?.length > 0 || (ans?.manual && ans.manual.trim().length > 0));
+                  });
+                  if (firstUnanswered) {
+                    setSelectedSubject("all");
+                    setTimeout(() => {
+                      setCurrentIndex(attempt.questions.indexOf(firstUnanswered));
+                      setShowPreviewModal(false);
+                    }, 0);
+                  }
+                }}
+                className="p-4 bg-rose-50 rounded-2xl border border-rose-100 text-left hover:bg-rose-100 hover:shadow-md transition-all group"
+              >
+                <div className="flex justify-between items-start">
+                  <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-1">Unanswered</p>
+                  <Eye className="w-3 h-3 text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <p className="text-2xl font-black text-rose-700">
+                   {actionableQuestions.filter(q => {
+                      const qid = q.id || q._id;
+                      const ans = answers[qid];
+                      return !markedForReview.has(qid) && !(ans?.selected?.length > 0 || (ans?.manual && ans.manual.trim().length > 0));
+                   }).length}
+                </p>
+              </button>
+            </div>
+
+            {viewedQuestions.size < actionableQuestions.length && (
+              <div className="mb-8 p-4 bg-amber-50 rounded-2xl border border-amber-200 flex items-start gap-3">
+                <HelpCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[11px] font-black text-amber-900 uppercase tracking-tight mb-0.5">Unviewed Questions Detected</p>
+                  <p className="text-[10px] font-medium text-amber-700 leading-relaxed">
+                    You have not viewed {actionableQuestions.length - viewedQuestions.size} questions. We recommend checking all questions before submitting.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              {!isTimeOver && (
+                <button
+                  onClick={() => setShowPreviewModal(false)}
+                  className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all"
+                >
+                  Back to Test
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  setShowPreviewModal(false);
+                  handleSubmit(true); // Using autoSubmit flag logic to avoid nested confirm
+                }}
+                disabled={isSubmitting}
+                className={`flex-[1.5] py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all shadow-xl shadow-indigo-100 ${isTimeOver ? 'w-full w-fit' : ''}`}
+              >
+                {isTimeOver ? 'Auto-Submitting...' : 'Confirm Submission'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -850,6 +1035,8 @@ const WriteMocktest = () => {
                   }}
                   answers={answers}
                   handleAnswer={handleAnswer}
+                  isMarked={markedForReview.has(current.id || current._id)}
+                  toggleMark={toggleMarkForReview}
                 />
               </div>
             ) : (
@@ -862,33 +1049,60 @@ const WriteMocktest = () => {
           </div>
 
           {/* ── BOTTOM NAV BAR ── */}
-          <div className="sticky bottom-0 z-10 bg-white px-2 sm:px-4 py-2 sm:py-3 border-t border-slate-200 flex justify-between items-center gap-2">
+          <div className="sticky bottom-0 z-10 bg-white px-2 sm:px-4 py-3 sm:py-4 border-t border-slate-200 flex justify-between items-center gap-3">
             <button
               disabled={currentIndex === 0 || filteredQuestions.length === 0}
               onClick={() => setCurrentIndex((i) => i - 1)}
-              className="px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-center bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 disabled:opacity-30 disabled:grayscale transition-all font-black uppercase text-[9px] sm:text-[10px] tracking-widest shrink-0"
+              className="px-3 sm:px-6 py-3 flex items-center justify-center bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 disabled:opacity-30 disabled:grayscale transition-all font-black uppercase text-[9px] sm:text-[10px] tracking-widest shrink-0 border border-slate-200"
             >
-              <ChevronLeft size={14} className="mr-1 sm:mr-2" /> <span className="hidden xs:inline">Prev</span>
+              <ChevronLeft size={16} className="mr-1 sm:mr-2" /> <span className="hidden xs:inline">Previous</span>
             </button>
             
+            <button
+              onClick={() => {
+                const qId = current.id || current._id;
+                // Treat skip as "Mark for Review" and move next
+                if (!markedForReview.has(qId)) {
+                  toggleMarkForReview(qId);
+                }
+                if (currentIndex < filteredQuestions.length - 1) {
+                  setCurrentIndex(i => i + 1);
+                }
+              }}
+              className="px-4 sm:px-8 py-3 flex items-center justify-center bg-white text-purple-600 rounded-xl hover:bg-purple-50 border-2 border-purple-100 transition-all font-black uppercase text-[10px] sm:text-[11px] tracking-widest shrink-0"
+            >
+               <span>Skip & Doubt</span>
+            </button>
+
             {/* Mobile Submit Button - Enhanced visibility */}
             <button
-              onClick={() => handleSubmit(false)}
+              onClick={() => {
+                if (viewedQuestions.size < actionableQuestions.length) {
+                  toast.error(`Please view all questions before submitting. (${viewedQuestions.size}/${actionableQuestions.length} viewed)`);
+                  return;
+                }
+                setShowPreviewModal(true);
+              }}
               disabled={isSubmitting}
-              className="flex-1 lg:hidden px-3 py-2.5 sm:py-3 bg-emerald-600 text-white rounded-lg font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg hover:bg-emerald-700"
+              className={`flex-1 lg:hidden px-3 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg ${
+                viewedQuestions.size < actionableQuestions.length 
+                  ? "bg-slate-300 text-slate-500 cursor-not-allowed" 
+                  : "bg-emerald-600 text-white hover:bg-emerald-700"
+              }`}
             >
-              <CheckCircle size={16} /> <span>Submit Exam</span>
+              <CheckCircle size={16} /> <span>Submit</span>
             </button>
 
             <button
               disabled={
                 currentIndex === filteredQuestions.length - 1 ||
-                filteredQuestions.length === 0
+                filteredQuestions.length === 0 ||
+                !hasAnsweredCurrent
               }
               onClick={() => setCurrentIndex((i) => i + 1)}
-              className="px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-center bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 disabled:opacity-30 disabled:grayscale transition-all font-black uppercase text-[9px] sm:text-[10px] tracking-widest shrink-0"
+              className="px-3 sm:px-6 py-3 flex items-center justify-center bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-30 disabled:grayscale transition-all font-black uppercase text-[9px] sm:text-[10px] tracking-widest shrink-0 shadow-lg shadow-indigo-100"
             >
-              <span className="hidden xs:inline">Next</span> <ChevronRight size={14} className="ml-1 sm:ml-2" />
+              <span className="hidden xs:inline">Save & Next</span> <ChevronRight size={16} className="ml-1 sm:ml-2" />
             </button>
           </div>
         </div>
@@ -900,6 +1114,8 @@ const WriteMocktest = () => {
               currentIndex={currentIndex}
               setCurrentIndex={setCurrentIndex}
               answers={answers}
+              markedForReview={markedForReview}
+              viewedQuestions={viewedQuestions}
               isMobile={false}
               expiryTimestamp={new Date(endsAt).getTime()}
               onTimeUp={handleTimeUp}
@@ -908,18 +1124,25 @@ const WriteMocktest = () => {
           {/* ── FINAL SUBMIT pinned at bottom of sidebar ── */}
           <div className="border-t border-slate-200 p-4 flex-shrink-0 bg-white">
             <button
-              onClick={() => handleSubmit(false)}
+              onClick={() => {
+                if (viewedQuestions.size < actionableQuestions.length) {
+                  toast.error(`Please view all questions before submitting. (${viewedQuestions.size}/${actionableQuestions.length} viewed)`);
+                  return;
+                }
+                setShowPreviewModal(true);
+              }}
               disabled={isSubmitting}
-              className={`w-full py-4 flex items-center justify-center gap-2 font-black uppercase text-xs tracking-widest transition-all active:scale-95 shadow-lg ${isSubmitting
+              className={`w-full py-4 flex items-center justify-center gap-2 font-black uppercase text-xs tracking-widest transition-all active:scale-95 shadow-xl ${isSubmitting || viewedQuestions.size < actionableQuestions.length
                   ? "bg-slate-300 text-slate-500 cursor-not-allowed"
-                  : "bg-green-600 text-white hover:bg-green-700"
+                  : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-100"
                 }`}
             >
               {isSubmitting ? (
                 <><SimpleSpinner size={18} color="#fff" /> PROCESSING...</>
               ) : (
-                <><CheckCircle className="h-5 w-5" /> Final Submit</>
+                <CheckCircle className="h-5 w-5" />
               )}
+              {isSubmitting ? "" : "Final Submit"}
             </button>
           </div>
         </aside>
@@ -934,6 +1157,8 @@ const WriteMocktest = () => {
                 currentIndex={currentIndex}
                 setCurrentIndex={setCurrentIndex}
                 answers={answers}
+                markedForReview={markedForReview}
+                viewedQuestions={viewedQuestions}
                 isMobile={true}
                 onClose={() => setIsNavOpen(false)}
                 expiryTimestamp={new Date(endsAt).getTime()}
@@ -943,14 +1168,18 @@ const WriteMocktest = () => {
             <div className="p-4 border-t border-slate-100 bg-white">
               <button
                 onClick={() => {
+                  if (viewedQuestions.size < actionableQuestions.length) {
+                    toast.error(`Please view all questions before submitting. (${viewedQuestions.size}/${actionableQuestions.length} viewed)`);
+                    return;
+                  }
                   setIsNavOpen(false);
-                  handleSubmit(false);
+                  setShowPreviewModal(true);
                 }}
                 disabled={isSubmitting}
-                className={`w-full py-4 flex items-center justify-center gap-2 font-black uppercase text-xs tracking-widest transition-all active:scale-95 shadow-lg ${
-                  isSubmitting
+                className={`w-full py-4 flex items-center justify-center gap-2 font-black uppercase text-xs tracking-widest transition-all active:scale-95 shadow-xl ${
+                  isSubmitting || viewedQuestions.size < actionableQuestions.length
                     ? "bg-slate-300 text-slate-500 cursor-not-allowed"
-                    : "bg-green-600 text-white hover:bg-green-700"
+                    : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-100"
                 }`}
               >
                 {isSubmitting ? (

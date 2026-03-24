@@ -257,23 +257,8 @@ const Navbar = () => {
               </div>
 
 
-              {/* === RIGHT: Nav Links (second half) + Actions === */}
+              {/* === RIGHT: Actions === */}
               <div className="flex items-center gap-8 ml-auto">
-                <div className="flex items-center gap-8 font-bold text-[11px] text-slate-600">
-                  <Link
-                    to="/mock-tests"
-                    className={location.pathname === "/mock-tests" ? "text-indigo-600" : "hover:text-indigo-600 transition-colors uppercase tracking-widest"}
-                  >
-                    MOCK TESTS
-                  </Link>
-                  <Link
-                    to="/grand-tests"
-                    className={location.pathname === "/grand-tests" ? "text-indigo-600" : "hover:text-indigo-600 transition-colors uppercase tracking-widest"}
-                  >
-                    GRAND TESTS
-                  </Link>
-                </div>
-
                 <div className="w-px h-5 bg-slate-200" />
                 
                 {userData ? (

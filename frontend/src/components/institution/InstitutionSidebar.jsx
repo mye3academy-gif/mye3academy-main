@@ -86,16 +86,17 @@ const InstitutionSidebar = () => {
     >
       {/* BRAND SECTION */}
       <div className="px-4 py-8 flex items-center gap-2">
-        <Link
-          to="/"
-          className="shrink-0 cursor-pointer hover:rotate-3 transition-transform"
+        <motion.div 
+          onClick={() => navigate("/")}
+          animate={{ width: expandedSidebar ? "auto" : "40px" }}
+          className="shrink-0 cursor-pointer active:scale-95 transition-all duration-300 overflow-hidden"
         >
           <img 
             src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`} 
             alt="Mye3 Logo" 
-            className="h-10 w-auto object-contain mx-auto"
+            className="h-10 w-auto object-contain object-left"
           />
-        </Link>
+        </motion.div>
         <AnimatePresence mode="wait">
           {expandedSidebar && (
             <motion.div

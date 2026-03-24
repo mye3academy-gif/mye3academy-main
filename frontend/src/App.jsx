@@ -19,6 +19,16 @@ import MobileFooterNav from "./components/MobileFooterNav";
 import Footer from "./components/Footer";
 import ForgetPassword from "./pages/ForgetPassword";
 
+// FOOTER PAGES
+import About from "./pages/footer/About";
+import Contact from "./pages/footer/Contact";
+import FAQ from "./pages/footer/FAQ";
+import InstructorProgram from "./pages/footer/InstructorProgram";
+import PrivacyPolicy from "./pages/footer/PrivacyPolicy";
+import TermsOfService from "./pages/footer/TermsOfService";
+import RefundPolicy from "./pages/footer/RefundPolicy";
+import CookieSettings from "./pages/footer/CookieSettings";
+
 // ADMIN COMPONENTS
 import AdminLayout from "./components/admin/AdminLayout";
 import DashboardPage from "./components/admin/DashboardPage";
@@ -127,6 +137,17 @@ const App = () => {
           <Route path="/institution-signup" element={<InstitutionSignup />} />
           <Route path="/forget-password" element={<ForgetPassword />} />
           <Route path="/institution-login" element={<InstitutionLogin />} />
+          
+          {/* STATIC FOOTER PAGES */}
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/instructor-program" element={<InstructorProgram />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/refund-policy" element={<RefundPolicy />} />
+          <Route path="/cookies" element={<CookieSettings />} />
+
           <Route
             path="/login"
             element={
