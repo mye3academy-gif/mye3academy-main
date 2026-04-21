@@ -5,6 +5,8 @@ import GrandTest from "../../models/GrandTest.js";
 import User from "../../models/Usermodel.js";
 import Order from "../../models/Order.js";
 import PaymentGateway from "../../models/PaymentGateway.js";
+import SubscriptionPlan from "../../models/SubscriptionPlan.js";
+import Attempt from "../../models/Attempt.js";
 
 /**
  * Helper to find a test across both collections
@@ -46,7 +48,7 @@ export const getPaymentConfig = async (req, res) => {
  */
 export const createOrder = async (req, res) => {
   try {
-    const { cartItems: itemIds } = req.body; 
+    const { cartItems: itemIds, itemType = "MockTest" } = req.body; 
     const userId = req.user._id;
 
     if (!itemIds || itemIds.length === 0) {
@@ -59,27 +61,34 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: "Payment service unavailable" });
     }
 
-    // 2. Calculate Total Amount from DB (Security)
-    // We must search both collections for each itemId
-    const tests = await Promise.all(itemIds.map(id => findTestById(id)));
-    
-    if (tests.some(t => !t)) {
-      return res.status(400).json({ success: false, message: "Some items not found in registry" });
-    }
-
     let totalAmount = 0;
-    tests.forEach(test => {
-      // Use discountPrice if available, else price
-      const priceToCharge = (test.discountPrice > 0 && test.discountPrice < test.price) 
-        ? test.discountPrice 
-        : test.price;
-      totalAmount += Number(priceToCharge) || 0;
-    });
+    
+    // 2. Calculate Total Amount from DB (Security)
+    if (itemType === "MockTest") {
+      const tests = await Promise.all(itemIds.map(id => findTestById(id)));
+      if (tests.some(t => !t)) return res.status(400).json({ success: false, message: "Some tests not found" });
+
+      tests.forEach(test => {
+        const priceToCharge = (test.discountPrice > 0 && test.discountPrice < test.price) 
+          ? test.discountPrice : test.price;
+        totalAmount += Number(priceToCharge) || 0;
+      });
+    } else if (itemType === "SubscriptionPlan") {
+      // Subscriptions are usually bought 1 at a time, but array structure works
+      const plans = await Promise.all(itemIds.map(id => SubscriptionPlan.findById(id)));
+      if (plans.some(p => !p)) return res.status(400).json({ success: false, message: "Some plans not found" });
+
+      plans.forEach(plan => {
+        const priceToCharge = (plan.discountPrice > 0 && plan.discountPrice < plan.price) 
+          ? plan.discountPrice : plan.price;
+        totalAmount += Number(priceToCharge) || 0;
+      });
+    } else {
+      return res.status(400).json({ success: false, message: "Invalid itemType provided" });
+    }
 
     // 3. Initialize Razorpay or Mock
     let orderId;
-    
-    // Fallback logic: if keyId is "test", name is "Mock", or isTestMode is true, use mock branch
     const isMock = activeGateway.credentials.keyId === "test" || 
                    activeGateway.name === "Mock" || 
                    activeGateway.isTestMode === true ||
@@ -107,9 +116,11 @@ export const createOrder = async (req, res) => {
     }
 
     // 5. Save Order to Database
+    const orderItemsParsed = itemIds.map(id => ({ itemId: id, itemType }));
+    
     const newOrder = new Order({
       user: userId,
-      items: itemIds,
+      items: orderItemsParsed,
       amount: totalAmount,
       "razorpay.order_id": orderId,
       status: "created",
@@ -185,11 +196,49 @@ export const verifyPayment = async (req, res) => {
       order.status = "successful";
       await order.save();
 
-      // 3. Update User: Add to purchased tests AND clear cart
-      const updatedUser = await User.findByIdAndUpdate(userId, {
-        $addToSet: { purchasedTests: { $each: order.items } },
-        $set: { cart: [] } // 🛒 Clear backend cart after purchase
-      }, { new: true });
+      // 3. Update User: Process based on itemType
+      let userDoc = await User.findById(userId);
+      const isSubscriptionPurchase = order.items.some(item => item.itemType === "SubscriptionPlan");
+      
+      for (const orderItem of order.items) {
+        if (orderItem.itemType === "MockTest") {
+          // Check if user already reached maxAttempts
+          const testId = orderItem.itemId;
+          const testDoc = await findTestById(testId);
+          if (testDoc) {
+             const userAttemptsCount = await Attempt.countDocuments({ studentId: userId, mocktestId: testId });
+             if (userAttemptsCount >= testDoc.maxAttempts) {
+                // User has maxed out, this is a RE-PURCHASE
+                const existingRepurchase = userDoc.rePurchasedTests.find(r => r.testId.toString() === testId.toString());
+                if (existingRepurchase) {
+                   existingRepurchase.bonusAttempts += (testDoc.repurchaseAttempts || 1);
+                } else {
+                   userDoc.rePurchasedTests.push({ testId, bonusAttempts: (testDoc.repurchaseAttempts || 1) });
+                }
+             } else {
+                // First time purchase
+                if (!userDoc.purchasedTests.includes(testId)) {
+                   userDoc.purchasedTests.push(testId);
+                }
+             }
+          }
+        } else if (orderItem.itemType === "SubscriptionPlan") {
+          const planId = orderItem.itemId;
+          const planDoc = await SubscriptionPlan.findById(planId);
+          if (planDoc) {
+             const expiresAt = new Date();
+             expiresAt.setDate(expiresAt.getDate() + planDoc.validityDays);
+             userDoc.activeSubscriptions.push({ planId, expiresAt });
+          }
+        }
+      }
+
+      // 🛒 Clear backend cart if it was a MockTest checkout
+      if (!isSubscriptionPurchase) {
+          userDoc.cart = [];
+      }
+      
+      const updatedUser = await userDoc.save();
 
       res.status(200).json({ 
           success: true, 

@@ -55,7 +55,7 @@ const AdminLayout = () => {
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#5654F7]/5 rounded-full blur-[120px] -mr-64 -mt-64 pointer-events-none"></div>
             <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#5654F7]/10 rounded-full blur-[140px] -ml-80 -mb-80 pointer-events-none"></div>
             
-            <div className="relative p-2 lg:p-3 pb-24 md:pb-3 min-h-full">
+            <div className="relative p-2 lg:p-4 pb-24 md:pb-4 min-h-full w-full">
                 <Outlet /> 
             </div>
         </main>

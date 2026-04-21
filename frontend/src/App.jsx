@@ -40,11 +40,13 @@ import TestAttempts from "./components/admin/mocktest/TestAttempts";
 import AdminQuestions from "./components/admin/mocktest/AdminQuestions";
 import SelectCategoryForCreation from "./components/admin/category/SelectCategoryForCreation";
 import CategoryMockTests from "./components/admin/category/CategoryMockTests.jsx";
+import SubscriptionsManage from "./components/admin/category/SubscriptionsManage.jsx";
 import AddInstructor from "./components/admin/instructors/AddInstructor";
 import AddStudent from "./components/admin/students/AddStudent";
 import PaymentManagement from "./components/admin/PaymentManagement";
 import AdminProfileSettings from "./components/admin/AdminProfileSettings";
 import AdminDoubts from "./pages/admin/AdminDoubts";
+import ManageNotifications from "./pages/admin/ManageNotifications";
 import PaymentGatewaySettings from "./pages/admin/PaymentGatewaySettings";
 import ManageInstitutions from "./components/admin/institutions/ManageInstitutions";
 import AddInstitution from "./components/admin/institutions/AddInstitution";
@@ -73,6 +75,7 @@ import InstitutionProfileSettings from "./pages/institution/InstitutionProfileSe
 // PROTECTED ROUTE
 import ProtectedRoute from "./components/student/ProtectedRoute";
 import ViewModeToggle from "./components/common/ViewModeToggle";
+import ConnectWithUs from "./components/common/ConnectWithUs";
 import { Toaster } from "react-hot-toast";
 
 // ------------------------- MAIN LAYOUT COMPONENT -------------------------
@@ -111,6 +114,7 @@ const MainLayout = ({ children }) => {
 
       {!hideLayout && <Footer />}
       <ViewModeToggle />
+      {!hideLayout && <ConnectWithUs />}
     </>
   );
 };
@@ -326,6 +330,7 @@ const App = () => {
               element={<PaymentGatewaySettings />}
             />
             <Route path="doubts" element={<AdminDoubts />} />
+            <Route path="notifications" element={<ManageNotifications />} />
             <Route path="profile" element={<AdminProfileSettings />} />
 
             {/* Categories Management (Directory of all exam types) */}
@@ -344,6 +349,9 @@ const App = () => {
             {/* Unified Test Manager (Handles Configuration & Questions) */}
             <Route path="mocktests" element={<ManageMocktests />} />
             <Route path="mocktests/:category" element={<CategoryMockTests />} />
+
+            {/* SUBSCRIPTIONS */}
+            <Route path="subscriptions" element={<SubscriptionsManage />} />
 
             {/* CREATE MODE: category provided, no ID */}
             <Route path="mocktests/:category/new" element={<AdminQuestions />} />

@@ -255,7 +255,6 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-white text-slate-800 flex flex-col font-sans">
-      <Navbar />
 
       <main className="flex-grow">
         {/* HERO - Suggestion: Use a light theme version for HeroSection too */}

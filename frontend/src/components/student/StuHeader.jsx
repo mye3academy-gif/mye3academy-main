@@ -31,7 +31,7 @@ const StuHeader = ({ user, setActiveTab }) => {
   const resolvedAvatar = studentProfile?.avatar || userData?.avatar || null;
 
   // ─── LEADERBOARD / RANK ───────────────────────────────────────
-  const { globalLeaderboard, globalLeaderboardStatus, publicMocktests } = useSelector(
+  const { globalLeaderboard, globalLeaderboardStatus, publicMocktests, notifications: globalNotifications } = useSelector(
     (state) => state.students
   );
 
@@ -112,8 +112,13 @@ const StuHeader = ({ user, setActiveTab }) => {
     }
   }, [showSearch]);
 
-  const unreadCount = notifications.length;
-  const hasNotification = unreadCount > 0;
+  const combinedUnreadCount = useMemo(() => {
+    const lastSeen = Number(localStorage.getItem("lastSeenNotification") || 0);
+    const unreadGlobal = globalNotifications?.filter(n => new Date(n.createdAt).getTime() > lastSeen).length || 0;
+    return unreadGlobal + notifications.length;
+  }, [globalNotifications, notifications]);
+
+  const hasNotification = combinedUnreadCount > 0;
 
   const displayName = user?.firstname
     ? `${user.firstname} ${user.lastname || ''}`.trim()
@@ -214,7 +219,9 @@ const StuHeader = ({ user, setActiveTab }) => {
                 Notifications
               </span>
               {hasNotification && (
-                <span className="absolute top-1 right-1 sm:static sm:ml-2 w-1.5 h-1.5 bg-rose-500 rounded-full" />
+                <span className="absolute -top-1 -right-1 sm:static sm:ml-2 flex h-4 w-4 items-center justify-center bg-rose-500 text-[10px] font-black text-white rounded-full shadow-lg">
+                  {combinedUnreadCount}
+                </span>
               )}
             </button>
 
@@ -234,10 +241,14 @@ const StuHeader = ({ user, setActiveTab }) => {
                        <p className="text-xs font-black text-slate-800 uppercase tracking-widest">Inbox</p>
                     </div>
                     <button
-                      onClick={() => { setNotifications([]); setShowNotifications(false); }}
+                      onClick={() => { 
+                        setNotifications([]); 
+                        setShowNotifications(false); 
+                        localStorage.setItem("lastSeenNotification", Date.now());
+                      }}
                       className="text-blue-600 hover:text-blue-700 text-[11px] font-black uppercase tracking-wider"
                     >
-                      Clear All
+                      Mark all as Read
                     </button>
                   </div>
                   <div className="max-h-80 overflow-y-auto custom-scrollbar">

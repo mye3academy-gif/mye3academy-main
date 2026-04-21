@@ -37,6 +37,7 @@ const MockTestSchema = new mongoose.Schema({
     discountPrice: { type: Number, default: 0 },
     thumbnail: { type: String, default: null },
     isFree: { type: Boolean, default: false },
+    maxAttempts: { type: Number, default: 1 }, // 0 = unlimited
     isPublished: { type: Boolean, default: false },
 
     isGrandTest: { type: Boolean, default: false },

@@ -11,15 +11,21 @@ import PerformanceHistory from "./PerformanceHistory";
 import ProfileSettings from "./ProfileSettings";
 import MyTests from "./MyTests";
 import StudentDoubts from "./StudentDoubts";
+import StudentNotifications from "./StudentNotifications";
 
 import { initSocket, disconnectSocket } from "../../socket";
 import { fetchStudentDoubts } from "../../redux/doubtSlice";
+import { fetchStudentNotifications, addNotification } from "../../redux/studentSlice";
 import { fetchStudentProfile } from "../../redux/studentSlice";
 
 export default function StuDashboard() {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
+  const activeTab = searchParams.get("tab") || "overview";
+  
+  const setActiveTab = (tab) => {
+    setSearchParams({ tab }, { replace: true });
+  };
   const mainRef = useRef(null);
 
   // LOGIC CONNECTIVITY FIX: Get Profile from studentSlice and Auth from userSlice
@@ -27,13 +33,11 @@ export default function StuDashboard() {
   const { userData } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
-  // React to ?tab= query param on every navigation (most reliable approach)
+  // React to ?tab= query param
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab) {
-      setActiveTab(tab);
-      // Clean up URL after reading
-      setSearchParams({}, { replace: true });
+    if (!tab) {
+       // Optional: Ensure default tab is in URL if needed, or leave as is
     }
   }, [searchParams]);
 
@@ -42,6 +46,7 @@ export default function StuDashboard() {
     if (!userProfile && userData) {
       dispatch(fetchStudentProfile());
     }
+    dispatch(fetchStudentNotifications());
   }, [dispatch, userProfile, userData]);
 
   // 2. SOCKET & DOUBTS SYNC
@@ -51,10 +56,21 @@ export default function StuDashboard() {
       const handleAnswer = () => {
         dispatch(fetchStudentDoubts());
       };
+      const handleNewNotification = (notif) => {
+        dispatch(addNotification(notif));
+        toast.success(`📢 New Update: ${notif.title}`, {
+           icon: '🚀',
+           duration: 5000,
+           position: 'top-right'
+        });
+      };
+      
       socket.on("doubtAnswered", handleAnswer);
+      socket.on("new_notification", handleNewNotification);
 
       return () => {
         socket.off("doubtAnswered", handleAnswer);
+        socket.off("new_notification", handleNewNotification);
         disconnectSocket();
       };
     }
@@ -94,6 +110,7 @@ export default function StuDashboard() {
           {activeTab === "performance" && <PerformanceHistory initialFilter="all" />}
           {activeTab === "settings" && <ProfileSettings />}
           {activeTab === "doubts" && <StudentDoubts />}
+          {activeTab === "job-notifications" && <StudentNotifications />}
         </div>
       </main>
     </div>

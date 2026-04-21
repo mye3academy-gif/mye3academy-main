@@ -15,7 +15,8 @@ import {
   Target,
   Trophy,
   Crown,
-  Medal
+  Medal,
+  Bell
 } from 'lucide-react';
 
 import { StatCard } from '../../components/student/DashboardUIKIt';
@@ -31,7 +32,8 @@ const DashboardOverview = ({ setActiveTab }) => {
     globalLeaderboard,
     globalLeaderboardStatus,
     upcomingExams,
-    upcomingStatus
+    upcomingStatus,
+    notifications
   } = useSelector((state) => state.students);
   const { myDoubts, myStatus } = useSelector((state) => state.doubts);
   
@@ -82,10 +84,51 @@ const DashboardOverview = ({ setActiveTab }) => {
     }, 0);
     return (totalPct / completed.length).toFixed(1);
   }, [myAttempts]);
+  
+  const jobNotificationsCount = useMemo(() => {
+    if (!notifications) return 0;
+    return notifications.filter(n => n.type === 'job').length;
+  }, [notifications]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700 pb-10">
       
+      {/* 🎟️ ACTIVE PASSES SECTION */}
+      {userData?.activeSubscriptions?.length > 0 && (
+        <section className="mb-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Crown className="text-amber-500" size={20} />
+            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Active Premium Passes</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {userData.activeSubscriptions.map((sub, idx) => {
+              const planName = typeof sub.planId === 'object' ? sub.planId?.name : null;
+              const displayName = planName || "Premium Pass";
+              const expiryDate = new Date(sub.expiresAt);
+              const daysLeft = Math.ceil((expiryDate - new Date()) / (1000 * 60 * 60 * 24));
+              if (daysLeft <= 0) return null;
+
+              return (
+                <div key={idx} className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-5 shadow-lg shadow-amber-200/50 text-white flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Crown size={14} className="text-amber-100" />
+                      <h4 className="font-black text-base tracking-tight leading-tight">{displayName}</h4>
+                    </div>
+                    <p className="text-amber-100 text-xs font-bold uppercase tracking-wider bg-black/10 inline-block px-2 py-0.5 rounded">
+                      {daysLeft} Days Left
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                    <CheckCircle className="text-white" size={20} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <section>
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
           <StatCard
@@ -125,6 +168,14 @@ const DashboardOverview = ({ setActiveTab }) => {
             color="rose"
             subValue="PENDING"
             onClick={() => setActiveTab('doubts')}
+          />
+          <StatCard
+            icon={<Bell />}
+            title="Job Notifications"
+            value={jobNotificationsCount} 
+            color="indigo"
+            subValue="NEW ALERTS"
+            onClick={() => setActiveTab('job-notifications')}
           />
         </div>
       </section>

@@ -36,6 +36,7 @@ export default function AdminQuestions() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const typeParam = searchParams.get("type"); // "mock" or "grand"
+  const subParam  = searchParams.get("sub");  // pre-filled subcategory
 
   const location = useLocation();
   const isEditMode = Boolean(id);
@@ -47,7 +48,7 @@ export default function AdminQuestions() {
   // --- TEST CONFIG STORAGE ---
   const [testData, setTestData] = useState(null);
   const [configForm, setConfigForm] = useState({
-    subcategory: "",
+    subcategory: subParam || "",
     title: "",
     description: "",
     durationMinutes: "",
@@ -62,6 +63,7 @@ export default function AdminQuestions() {
     chapterTests: "",
     fullTests: "",
     baseEnrolledCount: "",
+    maxAttempts: "1",
   });
   const [isFree, setIsFree] = useState(true);
   const [isGrandTest, setIsGrandTest] = useState(typeParam === "grand");
@@ -154,6 +156,7 @@ export default function AdminQuestions() {
           chapterTests: raw.featureCounts?.chapterTests?.toString() || "",
           fullTests: raw.featureCounts?.fullTests?.toString() || "",
           baseEnrolledCount: raw.baseEnrolledCount?.toString() || "",
+          maxAttempts: raw.maxAttempts?.toString() ?? "1",
         });
 
         if (raw.thumbnail) setThumbnailPreview(getImageUrl(raw.thumbnail));
@@ -166,7 +169,7 @@ export default function AdminQuestions() {
 
         setQForm(prev => ({
           ...prev,
-          category: raw.subcategory || savedDefaults.category || "",
+          category: savedDefaults.category || "",
           marks: raw.marksPerQuestion?.toString() || savedDefaults.marks?.toString() || "1",
           negative: raw.negativeMarking?.toString() || savedDefaults.negative?.toString() || "0",
           difficulty: savedDefaults.difficulty || "easy",
@@ -232,10 +235,12 @@ export default function AdminQuestions() {
     const fd = new FormData();
     
     // Core fields from form
-    const coreFields = ["title", "description", "subcategory", "durationMinutes", "marksPerQuestion", "negativeMarking", "price", "baseEnrolledCount"];
+    const coreFields = ["title", "description", "subcategory", "durationMinutes", "marksPerQuestion", "negativeMarking", "price", "baseEnrolledCount", "maxAttempts"];
     coreFields.forEach(key => {
         if (configForm[key] !== undefined && configForm[key] !== null) {
-            fd.append(key, configForm[key]);
+            let val = configForm[key];
+            if (key === "subcategory") val = String(val).trim();
+            fd.append(key, val);
         }
     });
 
@@ -509,60 +514,17 @@ export default function AdminQuestions() {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                        <label className={labelClass}>Exam Name *</label>
-                       <input className={`${inputClass} font-bold`} value={configForm.title} onChange={e => setConfigForm({ ...configForm, title: e.target.value })} placeholder="e.g. IBPS Clerk Mock 01" />
+                       <input className={`${inputClass} font-bold`} value={configForm.title} onChange={e => setConfigForm({ ...configForm, title: e.target.value })} placeholder="e.g. SSC CGL Prelims Set 1" />
                     </div>
                     <div className="space-y-2">
-                       <label className={labelClass}>Exam category *</label>
-                       <input className={`${inputClass} font-bold`} value={configForm.subcategory} onChange={e => setConfigForm({ ...configForm, subcategory: e.target.value })} placeholder="e.g. Banking / SSC" />
+                       <label className={labelClass}>Sub-Category * <span className="text-blue-500 normal-case font-normal">(groups tests on Explore page)</span></label>
+                       <input className={`${inputClass} font-bold`} value={configForm.subcategory} onChange={e => setConfigForm({ ...configForm, subcategory: e.target.value })} placeholder="e.g. SSC CGL, RRB NTPC, SBI Clerk" />
+                       <p className="text-[9px] text-slate-400 font-bold">Same sub-category = grouped together on /all-tests page</p>
                     </div>
                   </div>
                 </div>
 
-                {/* 2. EXAM SPECS (ONLY ESSENTIALS) */}
-                <div className="space-y-6 pt-2">
-                   <div className="border-b border-slate-100 pb-2">
-                      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Exam Specifications</h3>
-                   </div>
 
-                   <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                         <label className={labelClass}>Test Subjects (Comma Separated)</label>
-                         <input 
-                           className={inputClass} 
-                           value={configForm.languages} // Overriding languages for subjects input temporarily or just using it
-                           onChange={e => setConfigForm({ ...configForm, languages: e.target.value })} 
-                           placeholder="Eng, Quant, Reasoning" 
-                         />
-                      </div>
-                      <div className="space-y-2">
-                         <label className={labelClass}>Duration (Minutes) *</label>
-                         <input type="number" className={inputClass} value={configForm.durationMinutes} onChange={e => setConfigForm({ ...configForm, durationMinutes: e.target.value })} placeholder="60" />
-                      </div>
-                   </div>
-
-                   <div className="grid grid-cols-4 gap-4">
-                      <div className="space-y-2">
-                         <label className={labelClass}>Total Qs</label>
-                         <div className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm font-black text-slate-700">
-                            {actualQuestionCount} Qs
-                         </div>
-                      </div>
-                      <div className="space-y-2">
-                         <label className={labelClass}>Total Marks</label>
-                         <div className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm font-black text-slate-700">
-                            {totalMarks || 0} Points
-                         </div>
-                      </div>
-                      <div className="space-y-2">
-                         <label className={labelClass}>Marks/Q</label>
-                         <input type="number" className={inputClass} value={configForm.marksPerQuestion} onChange={e => setConfigForm({ ...configForm, marksPerQuestion: e.target.value })} />
-                      </div>
-                      <div className="space-y-2">
-                         <label className={labelClass}>Neg Marking</label>
-                         <input type="number" step="0.25" className={inputClass} value={configForm.negativeMarking} onChange={e => setConfigForm({ ...configForm, negativeMarking: e.target.value })} />
-                      </div>
-                   </div>
-                </div>
 
                 {/* 3. PRICING */}
                 <div className="space-y-4 pt-2">
@@ -581,6 +543,22 @@ export default function AdminQuestions() {
                           <input type="number" className={inputClass} value={configForm.price} onChange={e => setConfigForm({ ...configForm, price: e.target.value })} placeholder="0" />
                        </div>
                     )}
+                  </div>
+
+                  {/* Attempt Limit */}
+                  <div className="grid md:grid-cols-2 gap-4 items-start pt-2">
+                    <div className="space-y-2">
+                      <label className={labelClass}>Max Attempts per Student <span className="text-blue-500">(0 = Unlimited)</span></label>
+                      <input
+                        type="number"
+                        min="0"
+                        className={inputClass}
+                        value={configForm.maxAttempts}
+                        onChange={e => setConfigForm({ ...configForm, maxAttempts: e.target.value })}
+                        placeholder="1"
+                      />
+                      <p className="text-[9px] text-slate-400 font-bold">Default: 1 attempt. Subscription plans can add extra attempts on top of this.</p>
+                    </div>
                   </div>
                 </div>
 
@@ -619,7 +597,7 @@ export default function AdminQuestions() {
                     <input
                       className="w-full bg-white border border-slate-200 px-3 py-2 text-sm font-bold text-[#3e4954] outline-none focus:border-indigo-500 transition-all placeholder:text-slate-300"
                       value={qForm.category}
-                      onChange={e => { const v = e.target.value; setQForm({ ...qForm, category: v }); setConfigForm(prev => ({ ...prev, subcategory: v })); saveSticky({ category: v }); }}
+                      onChange={e => { const v = e.target.value; setQForm({ ...qForm, category: v }); saveSticky({ category: v }); }}
                       placeholder="e.g. English"
                     />
                   </div>

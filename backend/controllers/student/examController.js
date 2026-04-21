@@ -4,6 +4,7 @@ import Attempt from "../../models/Attempt.js";
 import Question from "../../models/Question.js";
 import User from "../../models/Usermodel.js";
 import Order from "../../models/Order.js";
+import SubscriptionPlan from "../../models/SubscriptionPlan.js";
 import mongoose from "mongoose";
 import { shuffleArray, groupPassagesAndChildren } from "../../utils/examHelpers.js";
 
@@ -37,11 +38,86 @@ export const startTestAttempt = async (req, res) => {
       return res.status(200).json({ success: true, attemptId: latestAttempt._id, endsAt: latestAttempt.endsAt });
     }
 
-    // 2. Purchase check (Price > 0 and not explicitly marked as free)
+    // 2. Purchase / Subscription check (Price > 0 and not explicitly marked as free)
     if (!mocktest.isFree && mocktest.price > 0) {
-      const order = await Order.findOne({ user: studentId, items: mockTestId, status: "successful" });
-      if (!order) return res.status(403).json({ success: false, message: "Please purchase the test to continue." });
+      // Check direct order purchase
+      const order = await Order.findOne({
+        user: studentId,
+        "items.itemId": mockTestId,
+        status: "successful"
+      });
+
+      // Check subscription access
+      let hasSubscriptionAccess = false;
+      if (!order) {
+        const userDoc = await User.findById(studentId)
+          .select("activeSubscriptions")
+          .populate("activeSubscriptions.planId");
+        
+        const now = new Date();
+        const activeSubs = (userDoc?.activeSubscriptions || []).filter(
+          sub => sub.planId && new Date(sub.expiresAt) > now
+        );
+
+        for (const sub of activeSubs) {
+          const plan = sub.planId;
+          if (!plan) continue;
+          const catMatch = plan.categories?.some(
+            cId => cId.toString() === mocktest.category?.toString()
+          );
+          if (catMatch) { hasSubscriptionAccess = true; break; }
+        }
+      }
+
+      if (!order && !hasSubscriptionAccess) {
+        return res.status(403).json({ success: false, message: "Please purchase the test or a subscription pass to continue." });
+      }
     }
+
+    // 3. Attempt Limit Check
+    const maxAttempts = mocktest.maxAttempts ?? 1; // default 1 if not set
+
+    if (maxAttempts > 0) { // 0 = unlimited
+      const completedCount = await Attempt.countDocuments({
+        studentId,
+        mocktestId: mockTestId,
+        status: "completed"
+      });
+
+      if (completedCount >= maxAttempts) {
+        // Check if subscription gives extra attempts
+        const userDoc2 = await User.findById(studentId)
+          .select("activeSubscriptions")
+          .populate("activeSubscriptions.planId");
+
+        const now2 = new Date();
+        const activeSubs2 = (userDoc2?.activeSubscriptions || []).filter(
+          sub => sub.planId && new Date(sub.expiresAt) > now2
+        );
+
+        let totalAllowedAttempts = maxAttempts;
+        for (const sub of activeSubs2) {
+          const plan = sub.planId;
+          if (!plan) continue;
+          const catMatch = plan.categories?.some(
+            cId => cId.toString() === mocktest.category?.toString()
+          );
+          if (catMatch) {
+            if (plan.extraAttempts === -1) { totalAllowedAttempts = Infinity; break; }
+            totalAllowedAttempts += (plan.extraAttempts || 0);
+          }
+        }
+
+        if (completedCount >= totalAllowedAttempts) {
+          return res.status(403).json({
+            success: false,
+            attemptsExhausted: true,
+            message: `You have used all ${completedCount} attempt(s) for this test. Subscribe to a plan or re-purchase to get more attempts.`
+          });
+        }
+      }
+    }
+
 
     // 3. Question Selection Logic (Using embedded questions)
     let selected = [...(mocktest.questions || [])];

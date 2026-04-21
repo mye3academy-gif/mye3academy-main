@@ -20,10 +20,10 @@ const StatCard = ({ title, value, icon, bgColor, progress, link, iconColor, comp
         style={isSolidColor ? { backgroundColor: bgColor } : {}}
         className={`relative ${compact ? 'p-2 sm:p-4' : 'p-3 sm:p-6'} rounded-xl sm:rounded-[20px] shadow-[0_10px_30px_rgba(0,0,0,0.05)] overflow-hidden group border border-slate-100 ${!isSolidColor ? bgColor : ''} ${link ? 'cursor-pointer' : ''}`}
     >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 relative z-10">
+        <div className="flex items-center gap-3 relative z-10">
             {/* ICON CIRCLE */}
-            <div className={`shrink-0 ${compact ? 'w-7 h-7 sm:w-10 sm:h-10' : 'w-8 h-8 sm:w-12 sm:h-12'} rounded-lg sm:rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110 ${iconColor || 'bg-white/20 text-white'}`}>
-                {React.cloneElement(icon, { size: compact ? 12 : 16, strokeWidth: 2.5, className: "sm:w-[22px] sm:h-[22px]" })}
+            <div className={`shrink-0 ${compact ? 'w-8 h-8 sm:w-10 sm:h-10' : 'w-10 h-10 sm:w-12 sm:h-12'} rounded-lg sm:rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110 ${iconColor || 'bg-white/20 text-white'}`}>
+                {React.cloneElement(icon, { size: compact ? 14 : 18, strokeWidth: 2.5, className: "sm:w-[22px] sm:h-[22px]" })}
             </div>
 
             <div className="flex-grow min-w-0">

@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
-import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAdminProfile } from "../../redux/adminSlice";
 import api from "../../api/axios";
@@ -8,114 +8,60 @@ import { setUserData } from "../../redux/userSlice";
 import { motion, AnimatePresence } from "framer-motion";
 
 import {
-  LayoutDashboard,
-  FileText,
-  Users,
-  LogOut,
-  HelpCircle,
-  GraduationCap,
-  Building2,
-  UserCog,
-  ChevronRight,
-  ChevronDown,
-  CreditCard,
-  LayoutGrid
+  LogOut, HelpCircle, GraduationCap, Building2, UserCog,
+  ChevronLeft, ChevronRight, ChevronDown,
+  CreditCard, LayoutGrid, FileText, Bell
 } from "lucide-react";
 
-// ----------------------------------------------
-// NAVIGATION DATA MAPPING V2.1
-// ----------------------------------------------
 const MENU = [
-  { label: "Dashboard", icon: LayoutGrid, path: "/admin", end: true },
+  { label: "Dashboard",          icon: LayoutGrid,  path: "/admin",                          end: true },
   {
-    label: "Academic Exams",
-    icon: FileText,
-    key: "tests",
+    label: "Academic Exams",     icon: FileText,    key: "tests",
     children: [
-      { label: "Exam Categories", path: "/admin/categories" },
-      { label: "All Tests", path: "/admin/tests/manage-tests" },
+      { label: "Exam Categories",    path: "/admin/categories"          },
+      { label: "Subscription Plans", path: "/admin/subscriptions"       },
+      { label: "All Tests",          path: "/admin/tests/manage-tests"  },
     ],
   },
-  { label: "Students", icon: GraduationCap, path: "/admin/users/students/manage" },
-  { label: "Institutions", icon: Building2, path: "/admin/users/institutions/manage" },
-  { label: "Instructors", icon: UserCog, path: "/admin/users/instructors/manage" },
+  { label: "Students",            icon: GraduationCap, path: "/admin/users/students/manage"     },
+  { label: "Institutions",        icon: Building2,     path: "/admin/users/institutions/manage" },
+  { label: "Instructors",         icon: UserCog,       path: "/admin/users/instructors/manage"  },
   {
-    label: "Payment Management",
-    icon: CreditCard,
-    key: "payments",
+    label: "Payments",           icon: CreditCard,  key: "payments",
     children: [
-      { label: "Transactions Hub", path: "/admin/payments" },
-      { label: "Payment Settings", path: "/admin/payment-settings" },
+      { label: "Transactions Hub",  path: "/admin/payments"         },
+      { label: "Payment Settings",  path: "/admin/payment-settings" },
     ],
   },
-  { label: "Doubt Management", icon: HelpCircle, path: "/admin/doubts" },
+  { label: "Doubt Management",    icon: HelpCircle, path: "/admin/doubts"         },
+  { label: "Notifications",       icon: Bell,       path: "/admin/notifications"  },
 ];
 
 const Sidebar = ({ mobileOpen, setMobileOpen }) => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const navigate  = useNavigate();
+  const dispatch  = useDispatch();
 
-  const { adminProfile } = useSelector((state) => state.admin || {});
-  
-  const [isMobile, setIsMobile] = useState(false);
-  const [isHovering, setIsHovering] = useState(false);
-  const [isPinned, setIsPinned] = useState(false);
-  const [openMenus, setOpenMenus] = useState({}); // Track multiple open accordions
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { adminProfile } = useSelector((s) => s.admin || {});
 
-  const sidebarRef = useRef(null);
-  const hoverTimer = useRef(null);
-  const leaveTimer = useRef(null);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 1024);
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  // default open
+  const [isPinned,    setIsPinned]    = useState(true);
+  const [openMenus,   setOpenMenus]   = useState({});
+  const [isLoggingOut,setIsLoggingOut]= useState(false);
 
   useEffect(() => {
     if (!adminProfile) dispatch(fetchAdminProfile());
   }, [dispatch, adminProfile]);
 
-  // Sync openMenus with current path
+  // Auto-open active parent dropdown
   useEffect(() => {
-    const activeParent = MENU.find(m => m.children?.some(c => location.pathname === c.path));
-    if (activeParent) {
-      setOpenMenus(prev => ({ ...prev, [activeParent.key]: true }));
-    }
+    const active = MENU.find(m => m.children?.some(c => location.pathname === c.path));
+    if (active) setOpenMenus(prev => ({ ...prev, [active.key]: true }));
   }, [location.pathname]);
 
-  useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => { document.body.style.overflow = "unset"; };
-  }, [mobileOpen]);
-
-  // Force expanded mode on mobile to show all menu labels in the drawer
-  const expandedSidebar = isMobile ? true : (isPinned || isHovering);
-
-  const handleEnter = () => {
-    clearTimeout(leaveTimer.current);
-    hoverTimer.current = setTimeout(() => setIsHovering(true), 150);
-  };
-
-  const handleLeave = () => {
-    if (isPinned) return;
-    clearTimeout(hoverTimer.current);
-    leaveTimer.current = setTimeout(() => setIsHovering(false), 200);
-  };
-
   const toggleMenu = (key) => {
-    setOpenMenus(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
-    if (!expandedSidebar) setIsPinned(true);
+    setOpenMenus(prev => ({ ...prev, [key]: !prev[key] }));
+    if (!isPinned) setIsPinned(true); // auto-expand on submenu click
   };
 
   const handleLogout = async () => {
@@ -125,135 +71,132 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
       dispatch(setUserData(null));
       toast.success("You are now signed out");
       navigate("/");
-    } catch (error) {
+    } catch {
       toast.error("Logout failed");
     } finally {
       setIsLoggingOut(false);
     }
   };
 
-  const avatarUrl = useMemo(() => {
-    if (adminProfile?.avatar)
-      return `${import.meta.env.VITE_SERVER_URL}/${adminProfile.avatar.replace(/\\/g, "/")}`;
-    return `https://ui-avatars.com/api/?name=${adminProfile?.firstname || "Admin"}+${adminProfile?.lastname || ""}&background=6366f1&color=fff&size=128&bold=true`;
-  }, [adminProfile]);
+  // ── Desktop Sidebar ──
+  const DesktopSidebar = (
+    <div className="relative h-full">
+      {/* Floating toggle button OUTSIDE the sidebar so it's never clipped */}
+      <button
+        onClick={() => setIsPinned(p => !p)}
+        className="absolute -right-4 top-8 flex h-8 w-8 items-center justify-center rounded-full bg-white border border-slate-200 shadow-md text-slate-500 hover:text-[#5654F7] hover:scale-110 transition-all z-[120]"
+      >
+        {isPinned
+          ? <ChevronLeft  size={18} strokeWidth={2.5} />
+          : <ChevronRight size={18} strokeWidth={2.5} />}
+      </button>
 
-
-  const SidebarContent = (
     <motion.div
-      onMouseEnter={handleEnter}
-      onMouseLeave={handleLeave}
-      animate={{ width: expandedSidebar ? 280 : 88 }}
-      transition={{ type: "spring", stiffness: 140, damping: 20, mass: 0.8 }}
-      className="relative h-full bg-white flex flex-col z-[100]"
+      animate={{ width: isPinned ? 260 : 72 }}
+      transition={{ type: "spring", stiffness: 200, damping: 26 }}
+      className="h-full bg-white border-r border-slate-100 shadow-[4px_0_24px_rgba(0,0,0,0.04)] flex flex-col z-[100] overflow-hidden"
     >
-      {/* BRAND SECTION */}
-      <div className="px-4 py-8 flex items-center gap-2">
-        <motion.div 
-          onClick={() => navigate("/")}
-          animate={{ width: expandedSidebar ? "auto" : "40px" }}
-          className="shrink-0 cursor-pointer active:scale-95 transition-all duration-300 overflow-hidden"
+
+      {/* Brand */}
+      <div className="px-5 py-7 flex items-center gap-3 shrink-0">
+        <Link
+          to="/"
+          className="shrink-0 w-10 h-10 rounded-2xl bg-[#5654F7] flex items-center justify-center text-white shadow-lg hover:rotate-6 transition-transform"
         >
-          <img 
-            src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`} 
-            alt="Mye3 Logo" 
-            className="h-10 w-auto object-contain object-left"
-          />
-        </motion.div>
-        <AnimatePresence mode="wait">
-          {expandedSidebar && (
+          <GraduationCap size={22} strokeWidth={2.5} />
+        </Link>
+        <AnimatePresence>
+          {isPinned && (
             <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              className="overflow-hidden whitespace-nowrap cursor-pointer pr-4"
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1,  x:  0 }}
+              exit={{ opacity: 0,   x: -8 }}
+              className="overflow-hidden whitespace-nowrap cursor-pointer"
               onClick={() => navigate("/")}
             >
-              <p className="text-[10px] font-bold text-[#5654F7] uppercase tracking-wider leading-none mt-0.5">Admin</p>
+              <h2 className="text-lg font-black text-slate-800 tracking-tighter italic leading-none">Mye3</h2>
+              <p className="text-[10px] font-bold text-[#5654F7] uppercase tracking-[0.2em] leading-none mt-0.5">Academy Admin</p>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* NAVIGATION */}
-      <nav className="px-3 space-y-1 flex-grow overflow-y-auto custom-scrollbar">
+      {/* Nav */}
+      <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
         {MENU.map((m, i) => {
           const Icon = m.icon;
-          const isActiveParent = m.path ? location.pathname === m.path : m.children?.some(c => location.pathname === c.path);
-          const isDropdownOpen = openMenus[m.key];
+          const isActiveParent = m.path
+            ? location.pathname === m.path
+            : m.children?.some(c => location.pathname === c.path);
+          const isOpen = openMenus[m.key];
 
           return (
-            <div key={i} className="mb-1">
+            <div key={i} className="mb-0.5">
               <div
-                onClick={() => {
-                  if (m.children) {
-                    toggleMenu(m.key);
-                  } else {
-                    navigate(m.path);
-                    setMobileOpen(false);
-                  }
-                }}
-                className={`
-                    relative flex items-center gap-4 px-4 py-3 rounded-none cursor-pointer group transition-all
-                    ${isActiveParent ? "bg-[#5654F7]/10 text-[#5654F7]" : "text-slate-500 hover:bg-slate-50 hover:text-[#5654F7]"}
-                `}
+                onClick={() => m.children ? toggleMenu(m.key) : (navigate(m.path), setMobileOpen?.(false))}
+                className={`relative flex items-center gap-4 px-4 py-3 rounded-none cursor-pointer group transition-all
+                  ${isActiveParent
+                    ? "bg-[#5654F7]/10 text-[#5654F7]"
+                    : "text-slate-500 hover:bg-slate-50 hover:text-[#5654F7]"}`}
               >
+                {/* Tooltip when collapsed */}
+                {!isPinned && (
+                  <div className="absolute left-full ml-3 px-3 py-1.5 bg-slate-800 text-white text-xs font-bold rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-[200] pointer-events-none">
+                    {m.label}
+                    <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 bg-slate-800 rotate-45" />
+                  </div>
+                )}
+
                 {isActiveParent && !m.children && (
                   <motion.div
-                    layoutId="active-pill"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1.5 bg-[#5654F7] rounded-r-full shadow-sm"
+                    layoutId="admin-active-pill"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1.5 bg-[#5654F7] rounded-r-full"
                   />
                 )}
 
                 <Icon size={20} strokeWidth={isActiveParent ? 2.5 : 2} className="shrink-0 relative z-10" />
 
                 <AnimatePresence>
-                  {expandedSidebar && (
+                  {isPinned && (
                     <motion.span
-                      initial={{ opacity: 0, x: -5 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -5 }}
-                      className="text-[14px] font-bold whitespace-nowrap overflow-hidden"
+                      initial={{ opacity: 0, x: -6 }}
+                      animate={{ opacity: 1,  x:  0 }}
+                      exit={{ opacity: 0,   x: -6 }}
+                      className="text-sm font-bold whitespace-nowrap flex-1"
                     >
                       {m.label}
                     </motion.span>
                   )}
                 </AnimatePresence>
 
-                {m.children && expandedSidebar && (
+                {m.children && isPinned && (
                   <ChevronDown
-                    size={16}
-                    className={`ml-auto opacity-40 transition-transform ${isDropdownOpen ? "rotate-180 text-[#5654F7] opacity-100" : ""}`}
+                    size={15}
+                    className={`ml-auto opacity-40 transition-transform duration-200 ${isOpen ? "rotate-180 opacity-100 text-[#5654F7]" : ""}`}
                   />
                 )}
               </div>
 
-              {/* INLINE SUBMENU (ACCORDION) */}
+              {/* Accordion submenu */}
               <AnimatePresence>
-                {m.children && isDropdownOpen && expandedSidebar && (
+                {m.children && isOpen && isPinned && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden pl-11 pr-2 space-y-1 relative"
+                    className="overflow-hidden pl-11 pr-2 space-y-0.5"
                   >
                     {m.children.map((c, idx) => {
-                      const isActiveChild = location.pathname === c.path;
+                      const isChild = location.pathname === c.path;
                       return (
                         <div
                           key={idx}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(c.path);
-                            setMobileOpen(false);
-                          }}
-                          className={`
-                            relative py-2 pl-4 rounded-xl text-[13px] font-bold cursor-pointer transition-colors
-                            ${isActiveChild ? "text-[#5654F7]" : "text-slate-500 hover:text-[#5654F7]"}
-                          `}
+                          onClick={(e) => { e.stopPropagation(); navigate(c.path); setMobileOpen?.(false); }}
+                          className={`relative py-2 pl-4 rounded-xl text-[13px] font-bold cursor-pointer transition-colors
+                            ${isChild ? "text-[#5654F7]" : "text-slate-500 hover:text-[#5654F7]"}`}
                         >
-                          {isActiveChild && (
-                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#5654F7] shadow-sm" />
+                          {isChild && (
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#5654F7]" />
                           )}
                           {c.label}
                         </div>
@@ -262,76 +205,44 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
                   </motion.div>
                 )}
               </AnimatePresence>
-
-              {/* FLOATING SUBMENU (WHEN COLLAPSED) */}
-              <AnimatePresence>
-                {m.children && !expandedSidebar && isHovering && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    className="absolute left-full ml-2 top-0 bg-white border border-slate-100 shadow-2xl rounded-2xl w-48 p-2 z-[110]"
-                  >
-                    <div className="px-3 py-2 border-b border-slate-50 mb-1">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{m.label}</p>
-                    </div>
-                    {m.children.map((c, idx) => (
-                      <div
-                        key={idx}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(c.path);
-                          setMobileOpen(false);
-                        }}
-                        className={`
-                            px-4 py-2.5 rounded-xl text-[13px] font-bold cursor-pointer transition-colors
-                            ${location.pathname === c.path ? "bg-[#5654F7]/10 text-[#5654F7]" : "text-slate-600 hover:bg-slate-50 hover:text-[#5654F7]"}
-                        `}
-                      >
-                        {c.label}
-                      </div>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
           );
         })}
       </nav>
 
-      {/* FOOTER */}
-      <div className="mt-8 md:mt-auto p-4 border-t border-slate-100 bg-slate-50/50">
+      {/* Logout */}
+      <div className="p-4 border-t border-slate-100 shrink-0">
         <button
           onClick={handleLogout}
           disabled={isLoggingOut}
-          className={`
-                flex items-center gap-4 px-4 py-3 rounded-2xl transition-all group w-full
-                ${expandedSidebar ? "bg-rose-50 text-rose-600 shadow-sm border border-rose-100" : "text-slate-500 hover:text-rose-600 hover:bg-rose-50"}
-            `}
+          className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all w-full
+            ${isPinned
+              ? "bg-rose-50 text-rose-600 border border-rose-100"
+              : "text-slate-400 hover:text-rose-600 hover:bg-rose-50"}`}
         >
           <LogOut size={20} className="shrink-0" />
-          {expandedSidebar && (
-            <span className="text-[13px] font-bold whitespace-nowrap">
-              {isLoggingOut ? "Signing out..." : "Logout"}
+          {isPinned && (
+            <span className="text-sm font-bold whitespace-nowrap">
+              {isLoggingOut ? "Signing out..." : "Secure Logout"}
             </span>
           )}
         </button>
       </div>
     </motion.div>
+    </div>
   );
 
   return (
     <>
-      {/* DESKTOP SIDEBAR - Standard CSS hiding */}
-      <aside className="hidden lg:flex flex-col flex-shrink-0 sticky top-0 h-screen z-50 overflow-visible">
-        {SidebarContent}
-      </aside>
+      {/* Desktop */}
+      <div className="hidden lg:block h-screen sticky top-0 overflow-visible z-50">
+        {DesktopSidebar}
+      </div>
 
-      {/* MOBILE DRAWER */}
+      {/* Mobile Drawer */}
       <AnimatePresence>
         {mobileOpen && (
           <div className="lg:hidden fixed inset-0 z-[9999]">
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -339,7 +250,6 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
               onClick={() => setMobileOpen(false)}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
-            {/* Drawer */}
             <motion.div
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
@@ -347,8 +257,64 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="absolute left-0 top-0 h-[100dvh] w-[280px] bg-white shadow-2xl z-[10000]"
             >
-              <div className="h-full w-full overflow-y-auto overflow-x-hidden custom-scrollbar">
-                {SidebarContent}
+              <div className="h-full overflow-y-auto flex flex-col">
+                {/* Mobile brand */}
+                <div className="px-5 py-6 flex items-center justify-between border-b border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <Link to="/" className="w-10 h-10 rounded-2xl bg-[#5654F7] flex items-center justify-center text-white">
+                      <GraduationCap size={22} />
+                    </Link>
+                    <div>
+                      <h2 className="text-lg font-black text-slate-800 italic">Mye3</h2>
+                      <p className="text-[10px] font-bold text-[#5654F7] uppercase tracking-wider">Academy Admin</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mobile nav */}
+                <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+                  {MENU.map((m, i) => {
+                    const Icon = m.icon;
+                    const isActiveParent = m.path
+                      ? location.pathname === m.path
+                      : m.children?.some(c => location.pathname === c.path);
+                    const isOpen = openMenus[m.key];
+                    return (
+                      <div key={i}>
+                        <div
+                          onClick={() => m.children ? toggleMenu(m.key) : (navigate(m.path), setMobileOpen(false))}
+                          className={`flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all
+                            ${isActiveParent ? "bg-[#5654F7]/10 text-[#5654F7]" : "text-slate-500 hover:bg-slate-50"}`}
+                        >
+                          <Icon size={20} />
+                          <span className="text-sm font-bold flex-1">{m.label}</span>
+                          {m.children && <ChevronDown size={15} className={`transition-transform ${isOpen ? "rotate-180" : ""}`} />}
+                        </div>
+                        {m.children && isOpen && (
+                          <div className="pl-10 space-y-0.5 mt-0.5">
+                            {m.children.map((c, idx) => (
+                              <div
+                                key={idx}
+                                onClick={() => { navigate(c.path); setMobileOpen(false); }}
+                                className={`py-2 pl-4 rounded-xl text-[13px] font-bold cursor-pointer
+                                  ${location.pathname === c.path ? "text-[#5654F7]" : "text-slate-500"}`}
+                              >
+                                {c.label}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </nav>
+
+                <div className="p-4 border-t border-slate-100">
+                  <button onClick={handleLogout} className="flex items-center gap-4 px-4 py-3 rounded-2xl w-full bg-rose-50 text-rose-600 border border-rose-100">
+                    <LogOut size={20} />
+                    <span className="text-sm font-bold">Secure Logout</span>
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>

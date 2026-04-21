@@ -2,6 +2,7 @@ import MockTest from "../../models/MockTest.js";
 import GrandTest from "../../models/GrandTest.js";
 import Category from "../../models/Category.js";
 import Attempt from "../../models/Attempt.js";
+import SubscriptionPlan from "../../models/SubscriptionPlan.js";
 
 import mongoose from "mongoose";
 import User from "../../models/Usermodel.js";
@@ -37,127 +38,169 @@ export const getAvailableMocktests = async (req, res) => {
 export const getMyPurchasedTests = async (req, res) => {
   try {
     const userId = req.user._id;
-    const user = await User.findById(userId).select("purchasedTests");
+    const user = await User.findById(userId)
+      .select("purchasedTests activeSubscriptions rePurchasedTests")
+      .populate("activeSubscriptions.planId");
 
     if (!user)
       return res.status(404).json({ success: false, message: "User not found" });
 
-    // 1. Manually populate bought tests from both collections
-    const testIds = user.purchasedTests || [];
-
-
-    const populatedTests = await Promise.all(testIds.map(async (id) => {
-        try {
-            if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-
-                return null;
-            }
-
-            let test = await MockTest.findById(id).select("title totalMarks marksPerQuestion negativeMarking totalQuestions durationMinutes price discountPrice isFree isPublished isGrandTest category thumbnail subjects").populate("category", "name slug").lean();
-            if (test) {
-                // ✅ Add effective fields for consistency
-                test.marksPerQuestion = (test.marksPerQuestion > 0) ? test.marksPerQuestion : (test.totalQuestions > 0 ? Number((test.totalMarks / test.totalQuestions).toFixed(2)) : 1);
-                test.negativeMarking = (test.negativeMarking !== undefined && test.negativeMarking !== null) ? test.negativeMarking : 0;
-                return { ...test, isGrandTest: false };
-            }
-            
-            test = await GrandTest.findById(id).select("title totalMarks marksPerQuestion negativeMarking totalQuestions durationMinutes price discountPrice isFree isPublished isGrandTest category thumbnail subjects").populate("category", "name slug").lean();
-            if (test) {
-                // ✅ Add effective fields for consistency
-                test.marksPerQuestion = (test.marksPerQuestion > 0) ? test.marksPerQuestion : (test.totalQuestions > 0 ? Number((test.totalMarks / test.totalQuestions).toFixed(2)) : 1);
-                test.negativeMarking = (test.negativeMarking !== undefined && test.negativeMarking !== null) ? test.negativeMarking : 0;
-                return { ...test, isGrandTest: true };
-            }
-            
-
-            return null;
-        } catch (err) {
-            console.error(`[MY_TESTS] Error populating test ID ${id}:`, err);
-            return null;
+    // ── Helper: populate one test ID from MockTest or GrandTest ──
+    const populateOneTest = async (id, forceGrandTest = false) => {
+      try {
+        if (!id || !mongoose.Types.ObjectId.isValid(id)) return null;
+        const selectFields = "title totalMarks marksPerQuestion negativeMarking totalQuestions durationMinutes price discountPrice isFree isPublished isGrandTest maxAttempts category thumbnail subjects";
+        let test = await MockTest.findById(id).select(selectFields).populate("category", "name slug").lean();
+        if (test) {
+          test.marksPerQuestion = (test.marksPerQuestion > 0) ? test.marksPerQuestion : (test.totalQuestions > 0 ? Number((test.totalMarks / test.totalQuestions).toFixed(2)) : 1);
+          test.negativeMarking = (test.negativeMarking !== undefined && test.negativeMarking !== null) ? test.negativeMarking : 0;
+          return { ...test, isGrandTest: false };
         }
-    }));
+        test = await GrandTest.findById(id).select(selectFields).populate("category", "name slug").lean();
+        if (test) {
+          test.marksPerQuestion = (test.marksPerQuestion > 0) ? test.marksPerQuestion : (test.totalQuestions > 0 ? Number((test.totalMarks / test.totalQuestions).toFixed(2)) : 1);
+          test.negativeMarking = (test.negativeMarking !== undefined && test.negativeMarking !== null) ? test.negativeMarking : 0;
+          return { ...test, isGrandTest: true };
+        }
+        return null;
+      } catch (err) {
+        console.error(`[MY_TESTS] Error populating test ID ${id}:`, err);
+        return null;
+      }
+    };
 
-    const validTests = populatedTests.filter(Boolean);
+    // ── 1. Directly purchased tests ──
+    const purchasedTestIds = user.purchasedTests || [];
+    const directTests = (await Promise.all(purchasedTestIds.map(id => populateOneTest(id)))).filter(Boolean);
 
+    // ── 2. Subscription-unlocked tests ──
+    const now = new Date();
+    const activeSubs = (user.activeSubscriptions || []).filter(sub => sub.planId && new Date(sub.expiresAt) > now);
 
-    // Fetch all attempts for this user
-    const attempts = await Attempt.find({ studentId: userId });
+    const selectFields = "title totalMarks marksPerQuestion negativeMarking totalQuestions durationMinutes price discountPrice isFree isPublished isGrandTest maxAttempts category thumbnail subjects";
 
-    // Create mapping for quick lookup and count attempts
-    const attemptMap = {};
-    const countMap = {};
+    let subscriptionTests = [];
+    for (const sub of activeSubs) {
+      const plan = sub.planId;
+      if (!plan) continue;
 
-    attempts.forEach(attempt => {
-       try {
-           if (!attempt.mocktestId) return;
-           
-           const mtId = attempt.mocktestId.toString();
-           
-           // Track total count
-           countMap[mtId] = (countMap[mtId] || 0) + 1;
+      // Unlock entire categories
+      for (const catId of (plan.categories || [])) {
+        const [mocks, grand] = await Promise.all([
+          MockTest.find({ category: catId, isPublished: true }).select(selectFields).populate("category", "name slug").lean(),
+          GrandTest.find({ category: catId, isPublished: true }).select(selectFields).populate("category", "name slug").lean(),
+        ]);
+        mocks.forEach(t => subscriptionTests.push({ ...t, isGrandTest: false, _fromSubscription: true, _planName: plan.name }));
+        grand.forEach(t => subscriptionTests.push({ ...t, isGrandTest: true, _fromSubscription: true, _planName: plan.name }));
+      }
+    }
 
-           // Keep track of the latest attempt for status/progress
-           if (!attemptMap[mtId] || new Date(attempt.updatedAt) > new Date(attemptMap[mtId].updatedAt)) {
-               attemptMap[mtId] = attempt;
-           }
-       } catch (e) {
-           console.error("Error processing attempt for map:", e);
-       }
+    // ── 3. Merge + Deduplicate ──
+    const directIds = new Set(directTests.map(t => t._id.toString()));
+    const uniqueSubTests = subscriptionTests.filter(t => !directIds.has(t._id.toString()));
+    
+    // Deduplicate subscription tests themselves
+    const seenSubIds = new Set();
+    const dedupedSubTests = uniqueSubTests.filter(t => {
+      const id = t._id.toString();
+      if (seenSubIds.has(id)) return false;
+      seenSubIds.add(id);
+      return true;
     });
 
-    // 4. Optimize Re-attempt logic: Fetch all relevant "successful" orders for these tests once
+    const validTests = [...directTests, ...dedupedSubTests];
+
+    // ── 4. Fetch all attempts ──
+    const attempts = await Attempt.find({ studentId: userId }).select("status score createdAt updatedAt mocktestId");
+    const attemptMap = {};
+    const countMap = {};
+    attempts.forEach(attempt => {
+      try {
+        if (!attempt.mocktestId) return;
+        const mtId = attempt.mocktestId.toString();
+        countMap[mtId] = (countMap[mtId] || 0) + 1;
+        if (!attemptMap[mtId] || new Date(attempt.updatedAt) > new Date(attemptMap[mtId].updatedAt)) {
+          attemptMap[mtId] = attempt;
+        }
+      } catch (e) { console.error("Error processing attempt:", e); }
+    });
+
+    // ── 5. Fetch unused orders in bulk ──
     const successfulOrders = await Order.find({
         user: userId,
         status: "successful",
         attemptUsed: false,
-        items: { $in: validTests.map(t => t._id) }
+        "items.itemId": { $in: validTests.map(t => t._id) }
     }).lean();
 
-    const orderMap = new Set(successfulOrders.flatMap(o => o.items.map(i => i.toString())));
+    const orderMap = new Set();
+    successfulOrders.forEach(o => {
+      o.items?.forEach(i => {
+        if (i.itemId) orderMap.add(i.itemId.toString());
+      });
+    });
 
-    // Inject status and metadata into each purchased test
-    const finalTests = validTests.map((test) => {
-        try {
-            const testIdStr = test._id?.toString();
-            if (!testIdStr) return null;
+    // ── 6. Inject status and metadata ──
+    const purchasedTestsWithStatus = validTests.map((test) => {
+      try {
+        const testObj = { ...test };
+        const testIdStr = test._id?.toString();
+        if (!testIdStr) return null;
 
-            const latestAttempt = attemptMap[testIdStr];
-            const attemptsMade = countMap[testIdStr] || 0;
-            const maxAttempts = 1;
+        const latestAttempt = attemptMap[testIdStr];
+        const attemptsMade = countMap[testIdStr] || 0;
+        
+        // Include bonus attempts
+        const bonusObj = (user.rePurchasedTests || []).find(r => r.testId?.toString() === testIdStr);
+        const bonusAttempts = bonusObj ? bonusObj.bonusAttempts : 0;
+        const maxAttempts = (test.maxAttempts || 1) + bonusAttempts;
 
-            let status = 'not_started';
-            let progress = 0;
-            let latestAttemptId = null;
+        let status = 'not_started';
+        let progress = 0;
+        let latestAttemptId = null;
 
-            if (latestAttempt) {
-                latestAttemptId = latestAttempt._id;
-                status = latestAttempt.status === 'finished' ? 'completed' : latestAttempt.status;
-                if (status === 'started') progress = 10;
-                if (status === 'completed') progress = 100;
-            }
-
-            const isFree = test.isFree === true || test.price <= 0;
-            const hasUnusedOrder = isFree || orderMap.has(testIdStr);
-
-            const isPurchaseRequired = (status === 'completed') && !hasUnusedOrder;
-            
-            if (status === 'completed' && hasUnusedOrder) {
-                status = 'ready_to_retry';
-            }
-
-            return {
-                ...test,
-                status, 
-                progress,
-                attemptsMade,
-                maxAttempts,
-                latestAttemptId,
-                isPurchaseRequired
-            };
-        } catch (e) {
-            return null;
+        if (latestAttempt) {
+          latestAttemptId = latestAttempt._id;
+          status = latestAttempt.status;
+          if (status === 'finished') status = 'completed';
+          if (status === 'started') progress = 10;
+          if (status === 'completed') progress = 100;
         }
-    }).filter(Boolean);
+
+        const isFree = test.isFree === true || test.price <= 0 || test._fromSubscription;
+        const hasUnusedOrder = isFree || orderMap.has(testIdStr);
+
+        let isPurchaseRequired = false;
+
+        if (attemptsMade >= maxAttempts) {
+          if (hasUnusedOrder && !test._fromSubscription) {
+             status = 'ready_to_retry';
+          } else if (test._fromSubscription) {
+             status = 'ready_to_retry'; // Unlimited via subscription!
+          } else {
+            status = 'completed';
+            isPurchaseRequired = true;
+          }
+        } 
+        else if (status === 'completed') {
+           status = 'ready_to_retry';
+        }
+
+        return {
+          ...testObj,
+          status,
+          progress,
+          attemptsMade,
+          maxAttempts,
+          latestAttemptId,
+          isPurchaseRequired,
+        };
+      } catch (e) {
+        return null;
+      }
+    });
+
+    const finalTests = purchasedTestsWithStatus.filter(Boolean);
 
     res.status(200).json({
       success: true,
@@ -165,9 +208,7 @@ export const getMyPurchasedTests = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in getMyPurchasedTests:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Error loading purchased tests" });
+    res.status(500).json({ success: false, message: "Error loading purchased tests" });
   }
 };
 
@@ -179,24 +220,35 @@ export const getMyMockTestById = async (req, res) => {
         const { id } = req.params;
         const userId = req.user._id;
 
+        if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(404).json({ success: false, message: "Invalid Test format or ID" });
+        }
+
         // 1. Find the test
-        let test = await MockTest.findById(id).select("title totalMarks marksPerQuestion negativeMarking totalQuestions durationMinutes price discountPrice isFree isPublished isGrandTest category thumbnail subjects description").populate("category", "name slug").lean();
+        let test = await MockTest.findById(id).select("-questions").populate("category", "name slug").lean();
         let isGrandTest = false;
 
         if (!test) {
-            test = await GrandTest.findById(id).select("title totalMarks marksPerQuestion negativeMarking totalQuestions durationMinutes price discountPrice isFree isPublished isGrandTest category thumbnail subjects description").populate("category", "name slug").lean();
+            test = await GrandTest.findById(id).select("-questions").populate("category", "name slug").lean();
             isGrandTest = true;
         }
 
         if (!test) return res.status(404).json({ success: false, message: "Test not found" });
 
-        // 2. Fetch attempts for this test
-        const attempts = await Attempt.find({ studentId: userId, mocktestId: id });
-        const attemptsMade = attempts.length;
+        // 2. Fetch user to get bonus attempts and active subscriptions
+        const user = await User.findById(userId)
+          .select("rePurchasedTests activeSubscriptions")
+          .populate("activeSubscriptions.planId");
         
-        const latestAttempt = attempts.sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt))[0];
+        const bonusObj = (user?.rePurchasedTests || []).find(r => r.testId?.toString() === id);
+        const bonusAttempts = bonusObj ? bonusObj.bonusAttempts : 0;
 
         // 3. Status logic
+        const attempts = await Attempt.find({ studentId: userId, mocktestId: id }).select("status score createdAt updatedAt mocktestId");
+        const latestAttempt = attempts.sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt))[0];
+        const attemptsMade = attempts.length;
+
+        const maxAttempts = (test.maxAttempts || 1) + bonusAttempts;
         let status = 'not_started';
         let progress = 0;
         let latestAttemptId = null;
@@ -209,16 +261,34 @@ export const getMyMockTestById = async (req, res) => {
             if (status === 'completed') progress = 100;
         }
 
-        const isFree = test.isFree === true || test.price <= 0;
+        // Check Subscription Access
+        let hasSubscriptionAccess = false;
+        const now = new Date();
+        const activeSubs = (user.activeSubscriptions || []).filter(sub => sub.planId && new Date(sub.expiresAt) > now);
+        
+        for (const sub of activeSubs) {
+            const plan = sub.planId;
+            if (!plan) continue;
+            const catMatch = plan.categories?.some(cId => cId.toString() === test.category?._id?.toString());
+            if (catMatch) {
+                hasSubscriptionAccess = true;
+                break;
+            }
+        }
+
+        const isFree = test.isFree === true || test.price <= 0 || hasSubscriptionAccess;
         const unusedOrder = isFree ? true : await Order.findOne({
             user: userId,
-            items: id,
+            "items.itemId": id,
             status: "successful",
             attemptUsed: false,
         }).lean();
 
-        const isPurchaseRequired = (status === 'completed') && !unusedOrder && !isFree;
-        if (status === 'completed' && (unusedOrder || isFree)) {
+        const isPurchaseRequired = (attemptsMade >= maxAttempts) && !unusedOrder;
+        
+        if (attemptsMade < maxAttempts && status === 'completed') {
+            status = 'ready_to_retry';
+        } else if (attemptsMade >= maxAttempts && (unusedOrder || hasSubscriptionAccess)) {
             status = 'ready_to_retry';
         }
 
@@ -226,20 +296,20 @@ export const getMyMockTestById = async (req, res) => {
             success: true,
             test: {
                 ...test,
-                // ✅ Effective Marking Scheme Fallbacks
                 marksPerQuestion: (test.marksPerQuestion > 0) ? test.marksPerQuestion : (test.totalQuestions > 0 ? Number((test.totalMarks / test.totalQuestions).toFixed(2)) : 1),
                 negativeMarking: (test.negativeMarking !== undefined && test.negativeMarking !== null) ? test.negativeMarking : 0,
                 isGrandTest,
                 status,
                 progress,
                 attemptsMade,
-                maxAttempts: 1,
+                maxAttempts: test.maxAttempts || 1, 
                 latestAttemptId,
                 isPurchaseRequired
             }
         });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        console.error("GET_MY_MOCKTEST_BY_ID_ERROR:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
 

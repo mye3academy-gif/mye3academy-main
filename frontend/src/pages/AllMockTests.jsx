@@ -1,645 +1,293 @@
-// frontend/src/pages/AllMockTests.jsx
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useSearchParams, Link } from "react-router-dom";
-import { IoSearch, IoFunnel, IoClose, IoApps, IoChevronDown, IoSwapVertical, IoTrophy, IoDocumentText } from "react-icons/io5";
-import { getImageUrl, handleImageError } from "../utils/imageHelper";
-
-import { useDebounce } from "../hooks/useDebounce";
-import {
-  fetchPublicMockTests,
-  setPublicCategoryFilter,
-  setPublicSearch,
-} from "../redux/studentSlice";
+import { ChevronRight, Search, ArrowLeft } from "lucide-react";
+import { fetchPublicMockTests, resetPublicFilters } from "../redux/studentSlice";
 import { fetchCategories } from "../redux/categorySlice";
+import { getImageUrl, handleImageError } from "../utils/imageHelper";
 import MockTestCard from "../components/MockTestCard";
-import PremiumTestCard from "../components/PremiumTestCard";
-import UpcomingExamsGallery from "../components/sections/UpcomingExamsGallery";
-import { fetchUpcomingExams } from "../redux/studentSlice";
 
-const getCategoryTheme = (name = "") => {
-  const n = name.toLowerCase();
-  if (n.includes("banking")) return { border: "border-blue-200", text: "text-blue-600", bg: "bg-blue-50", icon: "text-blue-500" };
-  if (n.includes("ssc")) return { border: "border-rose-200", text: "text-rose-600", bg: "bg-rose-50", icon: "text-rose-500" };
-  if (n.includes("railway") || n.includes("rrb")) return { border: "border-orange-200", text: "text-orange-600", bg: "bg-orange-50", icon: "text-orange-500" };
-  if (n.includes("constable") || n.includes("police")) return { border: "border-emerald-200", text: "text-emerald-600", bg: "bg-emerald-50", icon: "text-emerald-500" };
-  if (n.includes("teaching") || n.includes("tet")) return { border: "border-purple-200", text: "text-purple-600", bg: "bg-purple-50", icon: "text-purple-500" };
-  if (n.includes("defence")) return { border: "border-slate-300", text: "text-slate-700", bg: "bg-slate-100", icon: "text-slate-600" };
-  return { border: "border-indigo-200", text: "text-indigo-600", bg: "bg-indigo-50", icon: "text-indigo-500" };
-};
+const STAGES = { SUBCATEGORY: "sub", TESTS: "tests" };
 
-const TYPE_THEME = {
-  all: { border: "border-indigo-200", text: "text-indigo-600", bg: "bg-indigo-50", primary: "bg-indigo-600", hover: "hover:border-indigo-600", accent: "indigo", sideActive: "border-indigo-600 bg-indigo-50 text-indigo-600", sideIcon: "bg-indigo-100 text-indigo-600", sideDot: "bg-indigo-600" },
-  mock: { border: "border-emerald-200", text: "text-emerald-600", bg: "bg-emerald-50", primary: "bg-emerald-600", hover: "hover:border-emerald-600", accent: "emerald", sideActive: "border-emerald-600 bg-emerald-50 text-emerald-600", sideIcon: "bg-emerald-100 text-emerald-600", sideDot: "bg-emerald-600" },
-  grand: { border: "border-amber-200", text: "text-amber-600", bg: "bg-amber-50", primary: "bg-amber-500", hover: "hover:border-amber-500", accent: "amber", sideActive: "border-amber-600 bg-amber-50 text-amber-600", sideIcon: "bg-amber-100 text-amber-600", sideDot: "bg-amber-600" }
-};
+// Normalize subcategory name for reliable grouping/matching
+const normalizeSub = (s) => (s || "General").toString().toLowerCase().replace(/\s+/g, '').replace(/,/g, '');
 
-const TypeTabs = ({ activeType, onTypeChange, isEmbedded }) => {
-  const tabs = [
-    { id: 'all', label: 'All Tests', path: '/all-tests' },
-    { id: 'mock', label: 'Mock Tests', path: '/mock-tests' },
-    { id: 'grand', label: 'Grand Tests', path: '/grand-tests' },
-  ];
-
-  const theme = TYPE_THEME[activeType] || TYPE_THEME.all;
-
-  return (
-    <div className="flex items-center bg-slate-50 border border-slate-200 p-1 rounded-xl shadow-sm w-full md:w-auto overflow-x-auto no-scrollbar">
-      {tabs.map((tab) => (
-        isEmbedded ? (
-          <button
-            key={tab.id}
-            onClick={() => onTypeChange(tab.id)}
-            className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${
-              activeType === tab.id
-                ? `${theme.primary} text-white shadow-md`
-                : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ) : (
-          <Link
-            key={tab.id}
-            to={tab.path}
-            className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${
-              activeType === tab.id
-                ? `${theme.primary} text-white shadow-md`
-                : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            {tab.label}
-          </Link>
-        )
-      ))}
-    </div>
-  );
-};
-
-export default function AllMockTests({ isEmbedded = false, overrideType = null }) {
+export default function AllMockTests({ overrideType }) {
   const dispatch = useDispatch();
-  const [searchParams] = useSearchParams();
 
-  const { publicMocktests, publicStatus, filters, upcomingExams, upcomingStatus } = useSelector(
-    (state) => state.students
-  );
-  const { items: categories, loading: categoriesLoading } = useSelector(
-    (state) => state.category
-  );
+  const { publicMocktests, publicStatus } = useSelector((s) => s.students);
+  const { items: categories, loading: catLoading } = useSelector((s) => s.category);
+  const { userData } = useSelector((s) => s.user);
 
-  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(filters.q || "");
-  const [sortBy, setSortBy] = useState("newest"); // newest, oldest, name-az, name-za
-  const [testType, setTestType] = useState(overrideType || searchParams.get("type") || "all"); // all, mock, grand
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
-
-  const activeTheme = TYPE_THEME[testType] || TYPE_THEME.all;
-
-  useEffect(() => {
-    const categoryFromUrl = searchParams.get("category");
-    const searchFromUrl = searchParams.get("q");
-    const typeFromUrl = searchParams.get("type");
-    
-    if (categoryFromUrl) dispatch(setPublicCategoryFilter(categoryFromUrl));
-    if (searchFromUrl) {
-      dispatch(setPublicSearch(searchFromUrl));
-      setSearchTerm(searchFromUrl);
-    }
-  }, [dispatch, searchParams, overrideType]);
-
-  useEffect(() => {
-    setTestType(overrideType || searchParams.get("type") || "all");
-  }, [overrideType, searchParams]);
-
-  useEffect(() => {
-    if (debouncedSearchTerm !== filters.q) {
-      dispatch(setPublicSearch(debouncedSearchTerm));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearchTerm, dispatch]);
+  const [selectedCatId, setSelectedCatId] = useState(null);
+  const [selectedSub,   setSelectedSub]   = useState(null);
+  const [stage,         setStage]         = useState(STAGES.SUBCATEGORY);
+  const [search,        setSearch]        = useState("");
 
   useEffect(() => {
     dispatch(fetchCategories());
-    dispatch(fetchUpcomingExams());
+    dispatch(resetPublicFilters());
+    dispatch(fetchPublicMockTests(""));
   }, [dispatch]);
 
-  const buildQuery = useCallback((filters) => {
-    const params = new URLSearchParams();
-    if (filters.q) params.set("q", filters.q);
-    if (filters.category) params.set("category", filters.category);
-    return params.toString() ? `?${params.toString()}` : "";
-  }, []);
-
+  // Auto-select first category
   useEffect(() => {
-    const qs = buildQuery(filters);
-    dispatch(fetchPublicMockTests(qs));
-  }, [dispatch, filters, buildQuery]);
+    if (categories.length && !selectedCatId) {
+      setSelectedCatId(categories[0]._id);
+    }
+  }, [categories]);
 
-  const handleSelectCategory = (slug) => {
-    dispatch(setPublicCategoryFilter(slug));
-    setIsFilterPanelOpen(false);
+  // Subscribed category IDs
+  const subscribedCatIds = useMemo(() => {
+    if (!userData?.activeSubscriptions) return new Set();
+    const now = new Date();
+    const ids = new Set();
+    userData.activeSubscriptions
+      .filter((s) => new Date(s.expiresAt) > now)
+      .forEach((s) => {
+        const cats = s.planId?.categories || s.categories || [];
+        cats.forEach((c) => ids.add(String(c._id || c)));
+      });
+    return ids;
+  }, [userData]);
+
+  // Tests for selected category (optionally filtered by type)
+  const testsInCategory = useMemo(() => {
+    if (!publicMocktests || !selectedCatId) return [];
+    return publicMocktests.filter((t) => {
+      const catMatch = String(t.category?._id || t.category) === String(selectedCatId);
+      if (overrideType === "mock") return catMatch && !t.isGrandTest;
+      if (overrideType === "grand") return catMatch && t.isGrandTest;
+      return catMatch;
+    });
+  }, [publicMocktests, selectedCatId, overrideType]);
+
+  // Group by subcategory
+  const subcategoryGroups = useMemo(() => {
+    const map = {};
+    testsInCategory.forEach((t) => {
+      const key = (t.subcategory || "General").trim(); // Keep original-ish for display name
+      const normKey = normalizeSub(key);
+      if (!map[normKey]) map[normKey] = { name: key, tests: [] };
+      map[normKey].tests.push(t);
+    });
+    return Object.values(map).map((group) => ({ name: group.name, count: group.tests.length, tests: group.tests }));
+  }, [testsInCategory]);
+
+  // Tests in selected subcategory (+ search filter)
+  const testsInSub = useMemo(() => {
+    if (!selectedSub) return [];
+    const normalizedSelected = normalizeSub(selectedSub);
+    const base = testsInCategory.filter((t) => normalizeSub(t.subcategory) === normalizedSelected);
+    if (!search.trim()) return base;
+    return base.filter((t) => t.title?.toLowerCase().includes(search.toLowerCase()));
+  }, [testsInCategory, selectedSub, search]);
+
+  const selectedCat  = categories.find((c) => c._id === selectedCatId);
+  const isSubscribed = subscribedCatIds.has(String(selectedCatId));
+
+  // Total test count across all categories
+  const totalTests = publicMocktests?.length || 0;
+
+  const handleCatClick = (catId) => {
+    setSelectedCatId(catId);
+    setSelectedSub(null);
+    setStage(STAGES.SUBCATEGORY);
+    setSearch("");
   };
 
-  // Memoized filtered tests
-  const allTests = useMemo(() => {
-    if (!publicMocktests) return [];
-    let tests = [...publicMocktests];
-    
-    // Filter by type (Mock vs Grand)
-    if (testType === "mock") tests = tests.filter((t) => !t.isGrandTest);
-    if (testType === "grand") tests = tests.filter((t) => t.isGrandTest === true);
-    
-    // Sort
-    if (sortBy === "newest") tests.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    if (sortBy === "oldest") tests.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    if (sortBy === "name-az") tests.sort((a, b) => a.title.localeCompare(b.title));
-    if (sortBy === "name-za") tests.sort((a, b) => b.title.localeCompare(a.title));
-    
-    return tests;
-  }, [publicMocktests, sortBy, testType]);
-
-  const selectedCategoryName = useMemo(() => {
-    if (!filters.category) return null;
-    return categories.find((c) => c.slug === filters.category)?.name || filters.category;
-  }, [filters.category, categories]);
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const testsPerPage = 18;
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filters.q, filters.category, testType]);
-
-  const currentTests = useMemo(() => {
-    const start = (currentPage - 1) * testsPerPage;
-    return allTests.slice(start, start + testsPerPage);
-  }, [allTests, currentPage]);
-
-  const totalPages = Math.ceil(allTests.length / testsPerPage);
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-    window.scrollTo({ top: 400, behavior: 'smooth' });
+  const handleSubClick = (subName) => {
+    setSelectedSub(subName);
+    setStage(STAGES.TESTS);
+    setSearch("");
   };
 
   return (
-    <div className={`min-h-screen ${
-      isEmbedded ? "bg-transparent" :
-      testType === "mock" ? "bg-[#f0fff4] pt-20 pb-16" :
-      testType === "grand" ? "bg-[#fffbeb] pt-20 pb-16" :
-      "bg-[#f4f7fa] pt-20 pb-16"
-    }`}>
-      <div className={isEmbedded ? "w-full" : "max-w-[1440px] mx-auto px-6 md:px-12"}>
+    <div className="min-h-screen bg-white flex flex-col">
 
-        {/* ── TYPE HERO BANNER ── */}
-        {testType === "mock" && (
-          <div className="mt-2 mb-6 border-l-4 border-[#21b731] bg-white shadow-sm px-5 py-4 hidden md:flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <div className="w-11 h-11 bg-[#21b731]/10 flex items-center justify-center text-[#21b731] flex-shrink-0">
-                <IoDocumentText size={22} />
-              </div>
-              <div>
-                <h1 className="text-xl font-black text-[#3e4954] tracking-tight">Mock Tests</h1>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                  {allTests.length} Mock Tests Available
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-              <TypeTabs activeType="mock" onTypeChange={setTestType} isEmbedded={isEmbedded} />
-              
-              <div className="relative w-full md:w-80 group">
-                <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-lg focus-within:bg-white focus-within:border-[#21b731] transition-all duration-300 overflow-hidden p-1">
-                  <div className="pl-3 pr-2 py-2 text-slate-400">
-                    <IoSearch size={18} />
-                  </div>
-                  <input
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search Test Series"
-                    className="w-full px-1 py-1.5 outline-none text-[13px] text-slate-700 placeholder:text-slate-400 bg-transparent"
-                  />
-                  <button className="bg-[#21b731] hover:bg-[#1a9227] text-white px-5 py-2 rounded-md text-[11px] font-bold shadow-sm transition-all ml-1 tracking-wider">
-                    SEARCH
-                  </button>
-                </div>
-              </div>
-
-              <div className="relative w-full md:w-auto">
-                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg hover:border-[#21b731] transition-all cursor-pointer p-0.5">
-                  <div className="pl-3 text-slate-400">
-                    <IoSwapVertical size={16} />
-                  </div>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="appearance-none bg-transparent pl-2 pr-10 py-2.5 outline-none text-xs font-bold text-slate-700 cursor-pointer min-w-[140px]"
-                  >
-                    <option value="newest">NEWEST FIRST</option>
-                    <option value="oldest">OLDEST FIRST</option>
-                    <option value="name-az">NAME (A-Z)</option>
-                    <option value="name-za">NAME (Z-A)</option>
-                  </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                    <IoChevronDown size={14} />
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        )}
-
-        {testType === "grand" && (
-          <div className="mt-2 mb-6 border-l-4 border-amber-500 bg-white shadow-sm px-5 py-4 hidden md:flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <div className="w-11 h-11 bg-amber-50 flex items-center justify-center text-amber-500 flex-shrink-0">
-                <IoTrophy size={22} />
-              </div>
-              <div>
-                <h1 className="text-xl font-black text-[#3e4954] tracking-tight">Grand Tests</h1>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                  {allTests.length} Grand Tests Available
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-              <TypeTabs activeType="grand" onTypeChange={setTestType} isEmbedded={isEmbedded} />
-
-              <div className="relative w-full md:w-80 group">
-                <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-lg focus-within:bg-white focus-within:border-amber-500 transition-all duration-300 overflow-hidden p-1">
-                  <div className="pl-3 pr-2 py-2 text-slate-400">
-                    <IoSearch size={18} />
-                  </div>
-                  <input
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search Test Series"
-                    className="w-full px-1 py-1.5 outline-none text-[13px] text-slate-700 placeholder:text-slate-400 bg-transparent"
-                  />
-                  <button className="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2 rounded-md text-[11px] font-bold shadow-sm transition-all ml-1 tracking-wider">
-                    SEARCH
-                  </button>
-                </div>
-              </div>
-
-              <div className="relative w-full md:w-auto">
-                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg hover:border-amber-500 transition-all cursor-pointer p-0.5">
-                  <div className="pl-3 text-slate-400">
-                    <IoSwapVertical size={16} />
-                  </div>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="appearance-none bg-transparent pl-2 pr-10 py-2.5 outline-none text-xs font-bold text-slate-700 cursor-pointer min-w-[140px]"
-                  >
-                    <option value="newest">NEWEST FIRST</option>
-                    <option value="oldest">OLDEST FIRST</option>
-                    <option value="name-az">NAME (A-Z)</option>
-                    <option value="name-za">NAME (Z-A)</option>
-                  </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                    <IoChevronDown size={14} />
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        )}
-
-        {!["mock", "grand"].includes(testType) && (
-          <div className="mt-2 mb-6 border-l-4 border-indigo-600 bg-white shadow-sm px-5 py-4 hidden md:flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <div className="w-11 h-11 bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0">
-                <IoDocumentText size={22} />
-              </div>
-              <div>
-                <h1 className="text-2xl font-black text-[#3e4954] tracking-tight">All Tests</h1>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                  {allTests.length} Total Tests Available
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-              <TypeTabs activeType="all" onTypeChange={setTestType} isEmbedded={isEmbedded} />
-
-              <div className="relative w-full md:w-80 group">
-                <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-lg focus-within:bg-white focus-within:border-indigo-600 transition-all duration-300 overflow-hidden p-1">
-                  <div className="pl-3 pr-2 py-2 text-slate-400">
-                    <IoSearch size={18} />
-                  </div>
-                  <input
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search Test Series"
-                    className="w-full px-1 py-1.5 outline-none text-[13px] text-slate-700 placeholder:text-slate-400 bg-transparent"
-                  />
-                  <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-md text-[11px] font-bold shadow-sm transition-all ml-1 tracking-wider">
-                    SEARCH
-                  </button>
-                </div>
-              </div>
-
-              <div className="relative w-full md:w-auto">
-                <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg hover:border-indigo-600 transition-all cursor-pointer p-0.5">
-                  <div className="pl-3 text-slate-400">
-                    <IoSwapVertical size={16} />
-                  </div>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="appearance-none bg-transparent pl-2 pr-10 py-2.5 outline-none text-xs font-bold text-slate-700 cursor-pointer min-w-[140px]"
-                  >
-                    <option value="newest">NEWEST FIRST</option>
-                    <option value="oldest">OLDEST FIRST</option>
-                    <option value="name-az">NAME (A-Z)</option>
-                    <option value="name-za">NAME (Z-A)</option>
-                  </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                    <IoChevronDown size={14} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* MOBILE SIMPLIFIED HEADER */}
-        <div className="md:hidden flex flex-col gap-4 mb-6 mt-2">
-            <TypeTabs activeType={testType} onTypeChange={setTestType} isEmbedded={isEmbedded} />
-            <div className="flex gap-2">
-                <button 
-                  onClick={() => setIsFilterPanelOpen(true)}
-                  className="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-[11px] font-black text-slate-700 shadow-sm flex items-center justify-between uppercase tracking-tighter"
-                >
-                  <span className="truncate">{selectedCategoryName || "Category"}</span>
-                  <IoChevronDown className="shrink-0" size={14} />
-                </button>
-                <div className="flex-[1.5] relative">
-                    <input 
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Search..."
-                      className="w-full pl-8 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-[11px] font-black outline-none focus:border-indigo-600 shadow-sm uppercase tracking-tighter"
-                    />
-                    <IoSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                </div>
-            </div>
+      <div className="flex-1 max-w-7xl mx-auto w-full px-4 py-8">
+        {/* ─── Page heading ─── */}
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900">
+            {totalTests}+ Explore all Exams
+          </h1>
+          <p className="text-slate-400 text-sm mt-1 font-medium">
+            Get exam-ready with concepts, questions and study notes as per the latest pattern
+          </p>
         </div>
 
-        {/* MAIN LAYOUT WRAPPER */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
-          
-          {/* LEFT SIDEBAR CATEGORIES */}
-          <div className="hidden lg:flex w-56 shrink-0 flex-col relative lg:sticky lg:top-24 mb-8 lg:mb-0 max-h-[calc(100vh-8rem)] bg-white border border-slate-100 shadow-sm">
+        {/* ─── Main panel ─── */}
+        <div className="flex border border-slate-200 rounded-xl overflow-hidden min-h-[520px] shadow-sm">
 
-            {/* Sticky header — OUTSIDE scroll area */}
-            <div className="px-4 py-3 border-b border-slate-100 bg-white flex-shrink-0">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em]">
-                Categories
-              </span>
-            </div>
-
-            {/* Scrollable list */}
-            <div className="overflow-y-auto custom-scrollbar flex-1">
-            {categoriesLoading ? (
-              <div className="flex flex-col gap-0 p-2">
-                {[1,2,3,4,5,6,7].map((i) => (
-                  <div key={i} className="h-10 bg-slate-50 animate-pulse mb-1" />
+          {/* LEFT: Category sidebar */}
+          <div className="w-52 md:w-64 shrink-0 border-r border-slate-200 bg-white overflow-y-auto">
+            {catLoading ? (
+              <div className="p-4 space-y-3">
+                {[1,2,3,4,5].map((i) => (
+                  <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col">
+              <nav>
+                {categories.map((cat) => {
+                  const isActive = cat._id === selectedCatId;
+                  const count = publicMocktests?.filter(
+                    (t) => String(t.category?._id || t.category) === String(cat._id)
+                  ).length || 0;
 
-                {/* ALL button */}
-                <button
-                  onClick={() => handleSelectCategory("")}
-                  className={`group flex items-center gap-2.5 px-3 py-2.5 text-left transition-all duration-150 border-l-2 ${
-                    !filters.category
-                      ? activeTheme.sideActive
-                      : "border-transparent text-slate-500 hover:bg-slate-50 hover:border-slate-200"
-                  }`}
-                >
-                  <div className={`w-7 h-7 flex items-center justify-center flex-shrink-0 transition-colors ${
-                    !filters.category ? activeTheme.sideIcon : "bg-slate-100 text-slate-400 group-hover:bg-slate-200"
-                  }`}>
-                    <IoApps size={14} />
+                  return (
+                    <button
+                      key={cat._id}
+                      onClick={() => handleCatClick(cat._id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3.5 text-left border-b border-slate-100 transition-all group
+                        ${isActive ? "bg-emerald-50 border-l-4 border-l-emerald-500" : "hover:bg-slate-50 border-l-4 border-l-transparent"}`}
+                    >
+                      {/* icon */}
+                      <div className={`w-8 h-8 shrink-0 rounded-lg overflow-hidden flex items-center justify-center
+                        ${isActive ? "bg-emerald-100" : "bg-slate-100"}`}>
+                        {cat.image ? (
+                          <img
+                            src={getImageUrl(cat.image)}
+                            alt={cat.name}
+                            onError={handleImageError}
+                            className="w-6 h-6 object-contain"
+                          />
+                        ) : (
+                          <span className="text-sm font-black text-slate-400">
+                            {cat.name?.charAt(0)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-[13px] font-bold truncate leading-tight
+                          ${isActive ? "text-emerald-700" : "text-slate-700 group-hover:text-slate-900"}`}>
+                          {cat.name}
+                          {overrideType ? ` ${overrideType === "grand" ? "Grand" : ""} Exams` : " Exams"}
+                        </p>
+                        {count > 0 && (
+                          <p className="text-[10px] text-slate-400 font-medium">{count} tests</p>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </nav>
+            )}
+          </div>
+
+          {/* RIGHT: Content */}
+          <div className="flex-1 overflow-y-auto bg-white">
+
+            {/* ── SUBCATEGORY GRID ── */}
+            {stage === STAGES.SUBCATEGORY && (
+              <div className="p-6">
+                {isSubscribed && (
+                  <div className="mb-4 flex items-center gap-2 text-sm font-bold text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-4 py-2 w-fit">
+                    👑 You have a subscription pass for this category
                   </div>
-                  <span className={`text-[11px] font-black tracking-wide truncate ${
-                    !filters.category ? "text-[#21b731]" : "text-slate-600 group-hover:text-slate-800"
-                  }`}>
-                    All
-                  </span>
-                  {!filters.category && (
-                    <div className="ml-auto w-1.5 h-1.5 bg-[#21b731] flex-shrink-0" />
-                  )}
-                </button>
+                )}
 
-                {/* Divider */}
-                <div className="mx-3 my-1 border-t border-slate-50" />
-
-                {/* Category buttons */}
-                {[...categories]
-                  .sort((a, b) => a.name.localeCompare(b.name))
-                  .map((cat) => {
-                    const isActive = filters.category === cat.slug;
-                    return (
+                {publicStatus === "loading" ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {[1,2,3,4,5,6].map((i) => (
+                      <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse" />
+                    ))}
+                  </div>
+                ) : subcategoryGroups.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-72 text-center">
+                    <img
+                      src={selectedCat?.image ? getImageUrl(selectedCat.image) : ""}
+                      alt=""
+                      className="w-16 h-16 object-contain opacity-20 mb-4"
+                      onError={(e) => e.target.style.display = "none"}
+                    />
+                    <h3 className="font-black text-slate-500 text-base">No Tests Available</h3>
+                    <p className="text-slate-400 text-sm mt-1">No tests published in this category yet.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {subcategoryGroups.map((grp) => (
                       <button
-                        key={cat._id}
-                        onClick={() => handleSelectCategory(cat.slug)}
-                         className={`group flex items-center gap-2.5 px-3 py-2 text-left transition-all duration-150 border-l-2 ${
-                          isActive
-                            ? activeTheme.sideActive
-                            : "border-transparent hover:bg-slate-50 hover:border-slate-100"
-                        }`}
+                        key={grp.name}
+                        onClick={() => handleSubClick(grp.name)}
+                        className="flex items-center gap-3 p-3.5 border border-slate-200 rounded-xl bg-white hover:border-emerald-400 hover:shadow-md transition-all group text-left"
                       >
-                        {/* Category thumbnail */}
-                        <div className={`w-7 h-7 flex-shrink-0 overflow-hidden border transition-all ${
-                          isActive ? "border-[#21b731]/30" : "border-slate-100 group-hover:border-slate-200"
-                        }`}>
-                          {cat.image ? (
+                        {/* Subcategory icon = category image */}
+                        <div className="w-10 h-10 shrink-0 rounded-lg overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center">
+                          {selectedCat?.image ? (
                             <img
-                              src={getImageUrl(cat.image)}
-                              alt={cat.name}
+                              src={getImageUrl(selectedCat.image)}
+                              alt={grp.name}
                               onError={handleImageError}
-                              className="w-full h-full object-cover"
+                              className="w-7 h-7 object-contain"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-slate-100 text-[9px] font-black text-slate-400 uppercase">
-                              {cat.name?.charAt(0)}
-                            </div>
+                            <span className="text-xs font-black text-slate-300">
+                              {grp.name.charAt(0)}
+                            </span>
                           )}
                         </div>
-
-                        <span className={`text-[11px] font-black tracking-wide truncate transition-colors ${
-                          isActive ? "text-[#21b731]" : "text-slate-600 group-hover:text-slate-800"
-                        }`}>
-                          {cat.name}
-                        </span>
-
-                        {isActive && (
-                          <div className={`ml-auto w-1.5 h-1.5 ${activeTheme.sideDot} flex-shrink-0`} />
-                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-black text-slate-800 group-hover:text-emerald-700 transition-colors truncate">
+                            {grp.name}
+                          </p>
+                          <p className="text-[11px] text-slate-400 font-medium">{grp.count} Tests</p>
+                        </div>
+                        <ChevronRight size={16} className="shrink-0 text-slate-300 group-hover:text-emerald-500 transition-colors" />
                       </button>
-                    );
-                  })}
-              </div>
-            )}
-            </div>
-          </div>
-
-          {/* RIGHT GRID CONTENT */}
-          <div className="flex-1 min-w-0 w-full">
-            {publicStatus === "loading" ? (
-              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                  <div key={i} className="h-[320px] bg-white border border-slate-100 animate-pulse rounded-2xl" />
-                ))}
-              </div>
-            ) : (
-          <div className="animate-in fade-in slide-in-from-bottom-3 duration-500">
-
-            {/* Count label - HIDDEN ON MOBILE */}
-            <div className="mb-4 hidden md:flex items-center gap-2">
-              <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                {allTests.length} Tests
-              </span>
-            </div>
-
-            {/* Unified grid */}
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {currentTests.length > 0 ? (
-                currentTests.map((test, index) => (
-                  test.isGrandTest ? (
-                    <PremiumTestCard key={test._id} test={test} index={index} />
-                  ) : (
-                    <MockTestCard key={test._id} test={test} index={index} isEmbedded={isEmbedded} />
-                  )
-                ))
-              ) : (
-                <div className="col-span-full py-16 bg-white border-2 border-dashed border-slate-100 flex flex-col items-center justify-center text-center">
-                  <div className="w-12 h-12 bg-slate-50 flex items-center justify-center text-slate-300 mb-3">
-                    <IoSearch size={24} />
+                    ))}
                   </div>
-                  <h3 className="text-base font-black text-slate-800 uppercase tracking-widest">No Tests Found</h3>
-                  <button
-                    onClick={() => {
-                      setSearchTerm("");
-                      dispatch(setPublicSearch(""));
-                       dispatch(setPublicCategoryFilter(""));
-                    }}
-                    className={`mt-4 ${activeTheme.text} font-black uppercase tracking-widest text-[10px] hover:underline`}
-                  >
-                    Clear Filters
-                  </button>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center mt-12 gap-2">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 text-[10px] font-black uppercase tracking-widest bg-white border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors shadow-sm"
-                >
-                  Prev
-                </button>
-
-                <div className="flex items-center gap-1 mx-2 flex-wrap justify-center">
-                  {[...Array(totalPages)].map((_, i) => (
+            {/* ── TESTS LIST ── */}
+            {stage === STAGES.TESTS && (
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                  <div className="flex items-center gap-3">
                     <button
-                      key={i}
-                      onClick={() => handlePageChange(i + 1)}
-                      className={`w-8 h-8 text-[11px] font-black flex items-center justify-center transition-all border ${
-                        currentPage === i + 1
-                          ? `${activeTheme.primary} border-transparent text-white shadow-md`
-                          : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-                      }`}
+                      onClick={() => { setStage(STAGES.SUBCATEGORY); setSelectedSub(null); setSearch(""); }}
+                      className="flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
                     >
-                      {i + 1}
+                      <ArrowLeft size={16} /> {selectedCat?.name}
                     </button>
-                  ))}
+                    <ChevronRight size={14} className="text-slate-300" />
+                    <span className="text-sm font-black text-slate-800">{selectedSub}</span>
+                    <span className="text-xs text-slate-400 font-bold">({testsInSub.length} Tests)</span>
+                  </div>
+                  <div className="relative">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Search tests..."
+                      className="pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-xl outline-none focus:border-emerald-400 bg-white w-56"
+                    />
+                  </div>
                 </div>
 
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 text-[10px] font-black uppercase tracking-widest bg-white border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors shadow-sm"
-                >
-                  Next
-                </button>
+                {testsInSub.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-60 text-center">
+                    <Search size={40} className="text-slate-200 mb-3" />
+                    <h3 className="font-black text-slate-600">No Tests Found</h3>
+                    {search && (
+                      <button onClick={() => setSearch("")} className="mt-3 text-emerald-600 font-bold text-sm hover:underline">
+                        Clear search
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {testsInSub.map((test, i) => (
+                      <MockTestCard key={test._id} test={test} isEmbedded={false} index={i} />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
-          </div>
         </div>
-      </div>
-
-      {/* MOBILE DRAWER */}
-      {isFilterPanelOpen && (
-        <div className="fixed inset-0 z-[100] flex">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsFilterPanelOpen(false)} />
-          <div className="relative w-80 bg-white h-full shadow-2xl p-6 overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold text-slate-800">Categories</h2>
-              <button onClick={() => setIsFilterPanelOpen(false)} className="p-1.5 bg-slate-100 rounded-full">
-                <IoClose size={20} />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {/* All */}
-              <button
-                onClick={() => handleSelectCategory("")}
-                className={`flex flex-col items-center justify-end h-24 rounded-xl border-2 overflow-hidden transition-all
-                  ${!filters.category ? "border-blue-600" : "border-slate-200"}`}
-              >
-                <div className="flex-1 w-full flex items-center justify-center bg-blue-50">
-                  <IoApps size={28} className="text-blue-400" />
-                </div>
-                <div className={`w-full py-1.5 text-center text-xs font-bold uppercase ${!filters.category ? "bg-blue-600 text-white" : "bg-white text-slate-700"}`}>
-                  All
-                </div>
-              </button>
-              {categories.map((cat) => {
-                const isSelected = filters.category === cat.slug;
-                return (
-                  <button
-                    key={cat._id}
-                    onClick={() => handleSelectCategory(cat.slug)}
-                    className={`flex flex-col items-center justify-end h-24 rounded-xl border-2 overflow-hidden transition-all
-                      ${isSelected ? "border-blue-600" : "border-slate-200"}`}
-                  >
-                    <div className="flex-1 w-full relative bg-slate-100">
-                      {cat.image
-                        ? <img src={getImageUrl(cat.image)} alt={cat.name} onError={handleImageError} className="w-full h-full object-cover" />
-                        : <div className="w-full h-full flex items-center justify-center"><span className="text-2xl font-black text-slate-300">{cat.name?.charAt(0)}</span></div>
-                      }
-                    </div>
-                    <div className={`w-full py-1.5 text-center text-xs font-bold uppercase ${isSelected ? "bg-blue-600 text-white" : "bg-white text-slate-700"}`}>
-                      {cat.name}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── UPCOMING EXAMS SECTION ── */}
-      <div className="mt-12">
-        <UpcomingExamsGallery 
-          data={upcomingExams} 
-          loading={upcomingStatus === "loading"} 
-        />
       </div>
     </div>
   );

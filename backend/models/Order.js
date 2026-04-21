@@ -13,8 +13,8 @@ const orderSchema = new Schema(
     // Items purchased in the order
     items: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "MockTest",
+        itemId: { type: mongoose.Schema.Types.ObjectId },
+        itemType: { type: String, enum: ["MockTest", "SubscriptionPlan"] }
       },
     ],
 

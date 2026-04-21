@@ -27,6 +27,13 @@ import {
   deleteCategory,
 } from "../../controllers/admin/adminCategoryController.js";
 
+import {
+  getSubscriptionPlans,
+  addSubscriptionPlan,
+  updateSubscriptionPlan,
+  deleteSubscriptionPlan,
+} from "../../controllers/admin/adminSubscriptionController.js";
+
 // ⭐ SECURITY LOCK
 router.use(isAuth, isAdmin);
 
@@ -76,6 +83,12 @@ router.get("/categories", getCategories);
 router.post("/categories", upload.single("image"), addCategory); // Integrated Image Upload
 router.put("/categories/:id", upload.single("image"), updateCategory);
 router.delete("/categories/:id", deleteCategory);
+
+/* --- SUBSCRIPTION PLAN MANAGEMENT --- */
+router.get("/subscriptions", getSubscriptionPlans);
+router.post("/subscriptions", addSubscriptionPlan); 
+router.put("/subscriptions/:id", updateSubscriptionPlan);
+router.delete("/subscriptions/:id", deleteSubscriptionPlan);
 
 /* --- PAYMENT MANAGEMENT -- */
 router.get("/payments", getAllPayments);

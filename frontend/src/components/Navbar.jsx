@@ -15,6 +15,9 @@ import {
   ClipboardList,
   Zap,
   Grid,
+  MessageSquare,
+  HelpCircle,
+  Bell,
 } from "lucide-react";
 
 
@@ -141,41 +144,44 @@ const Navbar = () => {
         <div className="max-w-6xl mx-auto px-4 md:px-8">
           <div className="flex justify-between items-center h-14 md:h-16">
             {/* MOBILE TOP UI */}
-            <div className="flex md:hidden items-center justify-between w-full h-full px-2">
+            {/* MOBILE TOP UI */}
+            <div className="grid grid-cols-3 md:hidden items-center w-full h-full px-2">
               {/* Left: Logo */}
-              <Link
-                to="/"
-                className="flex items-center active:scale-95 transition-transform"
-              >
-                <img 
-                  src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`} 
-                  alt="Mye3 Logo" 
-                  className="h-9 w-auto object-contain"
-                />
-              </Link>
+              <div className="flex justify-start min-w-0">
+                <Link
+                  to="/"
+                  className="flex items-center active:scale-95 transition-transform"
+                >
+                  <img 
+                    src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`} 
+                    alt="Mye3 Logo" 
+                    className="h-6 sm:h-7 w-auto object-contain"
+                  />
+                </Link>
+              </div>
 
               {/* Center: Categories */}
               <div
-                className="relative"
+                className="flex justify-center relative"
                 ref={dropdownRef}
               >
                 <button
                   onClick={() =>
                     setIsCategoryDropdownOpen(!isCategoryDropdownOpen)
                   }
-                  className="flex items-center justify-center px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl shadow-sm text-slate-700 active:scale-95 transition-all"
+                  className="flex items-center justify-center px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl shadow-sm text-slate-700 active:scale-95 transition-all"
                 >
-                  <span className="text-[11px] font-black uppercase tracking-tight whitespace-nowrap">
+                  <span className="text-[10px] font-black uppercase tracking-tight whitespace-nowrap">
                     {currentCategoryName}
                   </span>
                 </button>
                 <AnimatePresence>
                   {isCategoryDropdownOpen && (
                     <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-56 bg-white border border-slate-100 rounded-2xl shadow-2xl py-2 z-[70] overflow-hidden"
+                      initial={{ opacity: 0, y: 10, x: "-50%" }}
+                      animate={{ opacity: 1, y: 0, x: "-50%" }}
+                      exit={{ opacity: 0, y: 10, x: "-50%" }}
+                      className="absolute top-full left-1/2 mt-3 w-56 bg-white border border-slate-100 rounded-2xl shadow-2xl py-2 z-[70] overflow-hidden"
                     >
                       <div className="px-4 py-2 border-b border-slate-50 mb-1">
                         <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Categories</p>
@@ -197,12 +203,14 @@ const Navbar = () => {
               </div>
 
               {/* Right: Menu */}
-              <button
-                onClick={() => setIsMobileMenuOpen(true)}
-                className="p-1.5 text-slate-700 active:scale-90 transition-all"
-              >
-                <Menu size={24} />
-              </button>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setIsMobileMenuOpen(true)}
+                  className="p-1.5 text-slate-700 active:scale-90 transition-all"
+                >
+                  <Menu size={24} />
+                </button>
+              </div>
             </div>
 
 
@@ -379,22 +387,28 @@ const Navbar = () => {
                   <Home size={20} className="text-indigo-500" /> Home
                 </Link>
                 <Link
-                  to="/all-tests"
-                  className="flex items-center gap-4 text-sm font-black text-slate-700 uppercase tracking-widest"
-                >
-                  <ClipboardList size={20} className="text-indigo-500" /> All Tests
-                </Link>
-                <Link
                   to="/mock-tests"
                   className="flex items-center gap-4 text-sm font-black text-slate-700 uppercase tracking-widest"
                 >
                   <Zap size={20} className="text-indigo-500" /> Mock Tests
                 </Link>
                 <Link
-                  to="/grand-tests"
+                  to="/student/doubts"
                   className="flex items-center gap-4 text-sm font-black text-slate-700 uppercase tracking-widest"
                 >
-                  <Zap size={20} className="text-indigo-500" /> Grand Tests
+                  <HelpCircle size={20} className="text-indigo-500" /> Ask Doubts
+                </Link>
+                <Link
+                  to="/contact"
+                  className="flex items-center gap-4 text-sm font-black text-slate-700 uppercase tracking-widest"
+                >
+                  <MessageSquare size={20} className="text-indigo-500" /> Add Feedback
+                </Link>
+                <Link
+                  to="/job-notifications"
+                  className="flex items-center gap-4 text-sm font-black text-slate-700 uppercase tracking-widest"
+                >
+                  <Bell size={20} className="text-indigo-500" /> Job Notifications
                 </Link>
               </div>
 

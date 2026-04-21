@@ -17,6 +17,21 @@ export const fetchPublicMockTests = createAsyncThunk(
   }
 );
 
+/* ============================================================
+   1.5 FETCH PUBLIC SUBSCRIPTIONS
+============================================================ */
+export const fetchPublicSubscriptions = createAsyncThunk(
+  "students/fetchPublicSubscriptions",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/api/public/subscriptions");
+      return res.data.plans || [];
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to load subscriptions");
+    }
+  }
+);
+
 export const fetchUpcomingExams = createAsyncThunk(
   "students/fetchUpcomingExams",
   async (_, { rejectWithValue }) => {
@@ -158,6 +173,21 @@ export const fetchGlobalLeaderboard = createAsyncThunk(
 );
 
 /* ============================================================
+   6. NOTIFICATIONS
+============================================================ */
+export const fetchStudentNotifications = createAsyncThunk(
+  "students/fetchNotifications",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/api/student/notifications/all");
+      return res.data.notifications || [];
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to load notifications");
+    }
+  }
+);
+
+/* ============================================================
    INITIAL STATE
 ============================================================ */
 const initialState = {
@@ -167,6 +197,10 @@ const initialState = {
   publicMocktests: [],
   publicStatus: "idle",
   publicError: null,
+
+  publicSubscriptions: [],
+  subscriptionsStatus: "idle",
+  subscriptionsError: null,
 
   upcomingExams: { upcoming: [], popular: [] },
   upcomingStatus: "idle",
@@ -201,6 +235,10 @@ const initialState = {
     category: "",
     limit: 0,
   },
+
+  // Notifications
+  notifications: [],
+  notificationStatus: "idle",
 };
 
 /* ============================================================
@@ -226,6 +264,10 @@ const studentSlice = createSlice({
         state.profileUpdateStatus = "idle";
         state.profileSuccessMessage = null;
         state.profileUpdateError = null;
+    },
+    // Real-time addition
+    addNotification(state, action) {
+      state.notifications.unshift(action.payload);
     }
   },
 
@@ -244,6 +286,22 @@ const studentSlice = createSlice({
         state.publicStatus = "failed";
         state.publicError = action.payload;
         state.publicMocktests = [];
+      });
+
+    /* PUBLIC SUBSCRIPTIONS */
+    builder
+      .addCase(fetchPublicSubscriptions.pending, (state) => {
+        state.subscriptionsStatus = "loading";
+        state.subscriptionsError = null;
+      })
+      .addCase(fetchPublicSubscriptions.fulfilled, (state, action) => {
+        state.subscriptionsStatus = "succeeded";
+        state.publicSubscriptions = action.payload;
+      })
+      .addCase(fetchPublicSubscriptions.rejected, (state, action) => {
+        state.subscriptionsStatus = "failed";
+        state.subscriptionsError = action.payload;
+        state.publicSubscriptions = [];
       });
 
     /* UPCOMING EXAMS */
@@ -369,15 +427,21 @@ const studentSlice = createSlice({
         state.leaderboardStatus = "failed";
       });
       builder
-      .addCase(fetchGlobalLeaderboard.pending, (state) => {
-        state.globalLeaderboardStatus = "loading";
-      })
-      .addCase(fetchGlobalLeaderboard.fulfilled, (state, action) => {
-        state.globalLeaderboardStatus = "succeeded";
-        state.globalLeaderboard = action.payload;
-      })
       .addCase(fetchGlobalLeaderboard.rejected, (state) => {
         state.globalLeaderboardStatus = "failed";
+      });
+
+      /* NOTIFICATIONS */
+      builder
+      .addCase(fetchStudentNotifications.pending, (state) => {
+        state.notificationStatus = "loading";
+      })
+      .addCase(fetchStudentNotifications.fulfilled, (state, action) => {
+        state.notificationStatus = "succeeded";
+        state.notifications = action.payload;
+      })
+      .addCase(fetchStudentNotifications.rejected, (state) => {
+        state.notificationStatus = "failed";
       });
 
 
@@ -388,7 +452,8 @@ export const {
   setPublicCategoryFilter, 
   setPublicSearch, 
   resetPublicFilters, 
-  clearProfileStatus 
+  clearProfileStatus,
+  addNotification
 } = studentSlice.actions;
 
 export default studentSlice.reducer;

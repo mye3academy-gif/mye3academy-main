@@ -415,10 +415,15 @@ const WriteMocktest = () => {
   const MAX_VIOLATIONS = 3;
 
   const enterFullscreen = () => {
-    const el = document.documentElement;
-    if (el.requestFullscreen) el.requestFullscreen();
-    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-    else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+    try {
+      const el = document.documentElement;
+      const promise = el.requestFullscreen?.() || el.webkitRequestFullscreen?.() || el.mozRequestFullScreen?.();
+      if (promise && typeof promise.catch === "function") {
+        promise.catch(() => {}); // silently ignore permission errors
+      }
+    } catch {
+      // ignore - browser may not allow fullscreen without user interaction
+    }
     setFsWarning(false);
   };
 

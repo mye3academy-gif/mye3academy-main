@@ -56,8 +56,21 @@ const userSchema = new mongoose.Schema(
 
     // 🛒 Cart & Tests
     cart: [{ type: mongoose.Schema.Types.ObjectId }],
-    purchasedTests: [{ type: mongoose.Schema.Types.ObjectId }],
+    purchasedTests: [{ type: mongoose.Schema.Types.ObjectId, ref: "MockTest" }],
     attempts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Attempt" }],
+    
+    activeSubscriptions: [
+      {
+        planId: { type: mongoose.Schema.Types.ObjectId, ref: "SubscriptionPlan" },
+        expiresAt: { type: Date },
+      }
+    ],
+    rePurchasedTests: [
+      {
+        testId: { type: mongoose.Schema.Types.ObjectId, ref: "MockTest" },
+        bonusAttempts: { type: Number, default: 0 },
+      }
+    ],
     
     // 🚩 Tracking Fields
     addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

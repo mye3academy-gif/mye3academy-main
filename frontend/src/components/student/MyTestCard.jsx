@@ -4,7 +4,8 @@ import {
     BookOpen,
     Clock,
     BarChart2,
-    Play
+    Play,
+    ShoppingBag
 } from 'lucide-react';
 import api from "../../api/axios";
 import { getImageUrl, handleImageError } from "../../utils/imageHelper";
@@ -29,20 +30,29 @@ const MyTestCard = ({ test }) => {
     const isGrandTest = test.isGrandTest === true;
     const progress = isCompleted ? 100 : test.progress || 0;
 
+    const isLimitReached = test.mocktestId?.allowedAttempts && test.attemptsMade >= test.mocktestId.allowedAttempts;
+    const hasAttempts = test.attemptsMade > 0;
+
     const handleAction = (e) => {
         if (e) e.stopPropagation();
         const testId = String(test._id);
-        const attemptId = test.latestAttemptId ? String(test.latestAttemptId) : null;
 
-        console.log("MyTestCard: Action clicked", { testId, attemptId, status: test.status, isCompleted, isReadyForNewAttempt });
-
-        if (isCompleted && !isReadyForNewAttempt && attemptId) {
-            navigate(`/student/review/${attemptId}`);
+        if (isLimitReached) {
+            // Redirect to test detail page for re-purchase or more info
+            navigate(`/test/${test.mocktestId?._id || test.mocktestId}`);
             return;
         }
         
         if (isReadyForNewAttempt || test.status === 'not_started' || test.status === 'in-progress' || !test.status) {
             navigate(`/student/instructions/${testId}`);
+        }
+    };
+
+    const handleReview = (e) => {
+        if (e) e.stopPropagation();
+        const attemptId = test.latestAttemptId ? String(test.latestAttemptId) : null;
+        if (attemptId) {
+            navigate(`/student/review/${attemptId}`);
         }
     };
 
@@ -71,15 +81,18 @@ const MyTestCard = ({ test }) => {
 
     let buttonText = "Start Exam";
     let statusLabel = "Ready";
-    
-    if (isCompleted && !isReadyForNewAttempt) {
-        buttonText = "View Report";
+
+    if (isLimitReached) {
+        buttonText = "Enroll Again";
+        statusLabel = "Limit Reached";
+    } else if (isCompleted && !isReadyForNewAttempt) {
+        buttonText = "Re-attempt";
         statusLabel = "Completed";
     } else if (isInProgress) {
         buttonText = "Resume Exam";
         statusLabel = "In Progress";
     } else if (isReadyForNewAttempt) {
-        buttonText = "Re-attempt";
+        buttonText = "Start New";
         statusLabel = "Needs Retry";
     }
 
@@ -111,10 +124,15 @@ const MyTestCard = ({ test }) => {
                         <span className={`text-[7px] sm:text-[8px] font-black px-1.5 sm:px-2 py-0.5 rounded uppercase tracking-wider sm:tracking-[2px] text-white shadow-sm flex-shrink-0 ${theme.badge}`}>
                             {isGrandTest ? "Grand" : "Mock"}
                         </span>
-                        <div className="flex-1 min-w-0 text-right">
+                        <div className="flex-1 min-w-0 text-right flex flex-col items-end">
                             <span className="text-[7px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-tight sm:tracking-wider truncate block">
                                 {statusLabel}
                             </span>
+                            {isLimitReached && (
+                                <span className="text-[6px] sm:text-[7px] font-black text-rose-500 uppercase tracking-tighter mt-0.5">
+                                    No attempts left
+                                </span>
+                            )}
                         </div>
                     </div>
                     <h3 className={`text-[12px] sm:text-[14px] font-black leading-tight line-clamp-2 sm:truncate transition-colors group-hover:${theme.text} text-slate-800 uppercase`}>
@@ -163,16 +181,29 @@ const MyTestCard = ({ test }) => {
                 </div>
             </div>
 
-            {/* Action Button */}
-            <button
-                onClick={handleAction}
-                className={`w-full py-2 px-1 sm:py-2.5 rounded-lg text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-white transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg ${theme.button}`}
-            >
-                <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="truncate">{buttonText}</span>
-                    <Play size={10} fill="currentColor" className="shrink-0" />
-                </div>
-            </button>
+            {/* Action Buttons Area */}
+            <div className="flex gap-2 mt-1">
+                {hasAttempts && (
+                    <button
+                        onClick={handleReview}
+                        className={`flex-1 py-2 px-1 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all transform active:scale-[0.95] flex items-center justify-center gap-1.5 border-2 ${theme.text} ${theme.border} hover:bg-white bg-white/50`}
+                    >
+                        <BarChart2 size={12} className="shrink-0" />
+                        <span className="truncate">Review</span>
+                    </button>
+                )}
+                
+                <button
+                    onClick={handleAction}
+                    className={`${hasAttempts ? 'flex-[1.5]' : 'w-full'} py-2 px-1 sm:py-2.5 rounded-lg text-[9px] sm:text-[11px] font-black uppercase tracking-widest text-white transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg ${isLimitReached ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-200/50' : theme.button}`}
+                >
+                    <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="truncate">{buttonText}</span>
+                        {!isLimitReached && <Play size={10} fill="currentColor" className="shrink-0" />}
+                        {isLimitReached && <ShoppingBag size={10} className="shrink-0" />}
+                    </div>
+                </button>
+            </div>
         </div>
     );
 };

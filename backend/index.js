@@ -21,6 +21,7 @@ import adminUserRoutes from "./routes/admin/adminUserRoutes.js";
 import dashboardRoute from "./routes/admin/dashboardRoute.js";
 import mocktestAdminRoutes from "./routes/admin/mocktestRoutes.js";
 import doubtAdminRoutes from "./routes/admin/doubtAdminRoutes.js";
+import adminNotificationRoutes from "./routes/admin/adminNotificationRoutes.js";
 
 // Instructor Section
 import instructorDashboardRoutes from "./routes/instructor/instructorDashboardRoutes.js";
@@ -32,6 +33,7 @@ import studentRoute from "./routes/student/studentRoute.js";
 import paymentRoute from "./routes/student/paymentRoute.js";        
 import doubtStudentRoutes from "./routes/student/doubtStudentRoutes.js";
 import studentDashboardRoute from "./routes/student/studentDashboardRoute.js";
+import studentNotificationRoutes from "./routes/student/notificationRoutes.js";
 
 dotenv.config();
 
@@ -91,6 +93,7 @@ app.use("/api/admin/users", adminUserRoutes);
 app.use("/api/admin/mocktests", mocktestAdminRoutes);
 app.use("/api/admin/doubts", doubtAdminRoutes);
 app.use("/api/admin/categories", publicRoutes);
+app.use("/api/admin/notifications", adminNotificationRoutes);
 app.use("/api/admin", adminRoutes);   
 
 // Instructor Section
@@ -104,6 +107,7 @@ app.use("/api/student", studentRoute);
 app.use("/api/payment", paymentRoute);
 app.use("/api/student/dashboard", studentDashboardRoute);
 app.use("/api/student/doubts", doubtStudentRoutes);
+app.use("/api/student/notifications", studentNotificationRoutes);
 
 // --- 5. GLOBAL ERROR HANDLER ---
 app.use((err, req, res, next) => {

@@ -76,11 +76,11 @@ const DashboardPage = () => {
             variants={containerVariants}
             initial="hidden"
             animate="show"
-            className="space-y-10"
+            className="space-y-10 w-full"
         >
 
-            {/* KPI STATS GRID - ALIGNED TO EDUMIN SCREENSHOT */}
-            <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6">
+            {/* KPI STATS GRID - ADAPTIVE LAYOUT */}
+            <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                 <StatCard
                     title="Total Students"
                     value={stats.students || "3,280"}

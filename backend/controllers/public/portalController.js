@@ -1,6 +1,7 @@
 import MockTest from "../../models/MockTest.js";
 import GrandTest from "../../models/GrandTest.js";
 import Category from "../../models/Category.js";
+import SubscriptionPlan from "../../models/SubscriptionPlan.js";
 import mongoose from "mongoose";
 
 /**
@@ -105,7 +106,21 @@ export const getMockTestById = async (req, res) => {
 };
 
 /**
- * 4. Get Upcoming & Popular Exams for Home Gallery
+ * 4. Get Published Subscription Plans
+ */
+export const getPublishedSubscriptionPlans = async (req, res) => {
+  try {
+    const plans = await SubscriptionPlan.find({ isPublished: true })
+        .populate("categories", "name slug image")
+        .sort({ price: 1 });
+    res.status(200).json({ success: true, plans: plans });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching subscription plans" });
+  }
+};
+
+/**
+ * 5. Get Upcoming & Popular Exams for Home Gallery
  * Logic: 
  * - 'Upcoming': Recently unpublished tests.
  * - 'Popular': Recently published tests.
