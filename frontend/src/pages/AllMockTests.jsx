@@ -106,20 +106,21 @@ export default function AllMockTests({ overrideType }) {
 
       <div className="flex-1 max-w-7xl mx-auto w-full px-4 py-8">
         {/* ─── Page heading ─── */}
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-black text-slate-900">
+        <div className="mb-4 md:mb-8">
+          <h1 className="text-xl md:text-3xl font-black text-slate-900 leading-tight">
             {totalTests}+ Explore all Exams
           </h1>
-          <p className="text-slate-400 text-sm mt-1 font-medium">
+          <p className="text-slate-400 text-[11px] md:text-sm mt-1 font-medium leading-relaxed">
             Get exam-ready with concepts, questions and study notes as per the latest pattern
           </p>
         </div>
 
         {/* ─── Main panel ─── */}
-        <div className="flex border border-slate-200 rounded-xl overflow-hidden min-h-[520px] shadow-sm">
+        <div className="flex flex-row border border-slate-200 rounded-xl overflow-hidden min-h-[520px] shadow-sm bg-white">
 
-          {/* LEFT: Category sidebar */}
-          <div className="w-52 md:w-64 shrink-0 border-r border-slate-200 bg-white overflow-y-auto">
+          {/* LEFT: Category selector sidebar */}
+          <div className="w-[85px] md:w-64 shrink-0 border-r border-slate-200 bg-white">
+            <div className="flex flex-col h-full overflow-y-auto no-scrollbar py-1 md:py-0">
             {catLoading ? (
               <div className="p-4 space-y-3">
                 {[1,2,3,4,5].map((i) => (
@@ -138,33 +139,32 @@ export default function AllMockTests({ overrideType }) {
                     <button
                       key={cat._id}
                       onClick={() => handleCatClick(cat._id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3.5 text-left border-b border-slate-100 transition-all group
-                        ${isActive ? "bg-emerald-50 border-l-4 border-l-emerald-500" : "hover:bg-slate-50 border-l-4 border-l-transparent"}`}
+                      className={`w-full flex flex-col md:flex-row items-center gap-1 md:gap-3 px-1 md:px-4 py-4 md:py-3.5 text-center md:text-left transition-all group
+                        ${isActive ? "bg-emerald-50 border-r-4 md:border-r-0 md:border-l-4 border-emerald-500" : "hover:bg-slate-50 border-r-4 md:border-r-0 md:border-l-4 border-transparent"}`}
                     >
                       {/* icon */}
-                      <div className={`w-8 h-8 shrink-0 rounded-lg overflow-hidden flex items-center justify-center
+                      <div className={`w-8 h-8 md:w-8 md:h-8 shrink-0 rounded-lg overflow-hidden flex items-center justify-center transition-transform group-active:scale-95
                         ${isActive ? "bg-emerald-100" : "bg-slate-100"}`}>
                         {cat.image ? (
                           <img
                             src={getImageUrl(cat.image)}
                             alt={cat.name}
                             onError={handleImageError}
-                            className="w-6 h-6 object-contain"
+                            className="w-5 h-5 md:w-6 md:h-6 object-contain"
                           />
                         ) : (
-                          <span className="text-sm font-black text-slate-400">
+                          <span className="text-[10px] md:text-sm font-black text-slate-400">
                             {cat.name?.charAt(0)}
                           </span>
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-[13px] font-bold truncate leading-tight
+                      <div className="flex flex-col min-w-0 w-full overflow-hidden">
+                        <p className={`text-[9px] md:text-[13px] font-bold leading-tight break-words md:truncate
                           ${isActive ? "text-emerald-700" : "text-slate-700 group-hover:text-slate-900"}`}>
                           {cat.name}
-                          {overrideType ? ` ${overrideType === "grand" ? "Grand" : ""} Exams` : " Exams"}
                         </p>
                         {count > 0 && (
-                          <p className="text-[10px] text-slate-400 font-medium">{count} tests</p>
+                          <p className="hidden md:block text-[10px] text-slate-400 font-medium">{count} tests</p>
                         )}
                       </div>
                     </button>
@@ -173,9 +173,10 @@ export default function AllMockTests({ overrideType }) {
               </nav>
             )}
           </div>
+        </div>
 
-          {/* RIGHT: Content */}
-          <div className="flex-1 overflow-y-auto bg-white">
+        {/* RIGHT: Content */}
+        <div className="flex-1 overflow-y-auto bg-white">
 
             {/* ── SUBCATEGORY GRID ── */}
             {stage === STAGES.SUBCATEGORY && (
@@ -278,9 +279,11 @@ export default function AllMockTests({ overrideType }) {
                     )}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 px-2 md:px-0">
                     {testsInSub.map((test, i) => (
-                      <MockTestCard key={test._id} test={test} isEmbedded={false} index={i} />
+                      <div key={test._id} className="w-full">
+                        <MockTestCard test={test} isEmbedded={false} index={i} />
+                      </div>
                     ))}
                   </div>
                 )}
