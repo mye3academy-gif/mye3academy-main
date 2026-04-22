@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Bell, Search, X, User, BookOpen, GraduationCap,
@@ -12,6 +13,7 @@ import { getImageUrl } from '../../utils/imageHelper';
 
 const StuHeader = ({ user, setActiveTab }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // ─── NOTIFICATIONS ────────────────────────────────────────────
   const [notifications, setNotifications] = useState([]);
@@ -135,13 +137,13 @@ const StuHeader = ({ user, setActiveTab }) => {
   };
 
   const handleEnrollClick = () => {
-    if (setActiveTab) setActiveTab('explore');
+    navigate('/all-tests');
   };
 
   const handleExploreTest = (test) => {
     setShowSearch(false);
     setSearchTerm('');
-    if (setActiveTab) setActiveTab('explore');
+    navigate('/all-tests');
   };
 
   const rankLabel = myRank === 1 ? '🥇' : myRank === 2 ? '🥈' : myRank === 3 ? '🥉' : myRank ? `#${myRank}` : null;
@@ -392,7 +394,7 @@ const StuHeader = ({ user, setActiveTab }) => {
               <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
                 <p className="text-[9px] text-slate-400 font-bold">Press Esc to close</p>
                 <button
-                  onClick={() => { setShowSearch(false); if (setActiveTab) setActiveTab('explore'); }}
+                  onClick={() => { setShowSearch(false); navigate('/all-tests'); }}
                   className="text-[9px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-wider hover:underline"
                 >
                   Browse All Tests →

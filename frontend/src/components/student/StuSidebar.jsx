@@ -44,6 +44,10 @@ const StuSidebar = ({ activeTab, setActiveTab }) => {
   }, [notifications]);
 
   const handleTabClick = (key) => {
+    if (key === "explore") {
+      return navigate("/all-tests");
+    }
+    
     setActiveTab(key);
     if (key === "job-notifications") {
       localStorage.setItem("lastSeenNotification", Date.now());

@@ -73,7 +73,7 @@ export default function SubscriptionPassBanner({ pass, categoryName }) {
                 if (verifyData.success) {
                     dispatch(fetchStudentProfile());
                     toast.success("🎉 Pass Unlocked! Welcome to Premium!");
-                    setTimeout(() => window.location.reload(), 1500);
+                    setTimeout(() => navigate("/student-dashboard?tab=my-tests"), 1500);
                 } else {
                     toast.error("Failed to activate pass. Try again.");
                 }
@@ -107,7 +107,7 @@ export default function SubscriptionPassBanner({ pass, categoryName }) {
                         if (verifyData.success) {
                             dispatch(fetchStudentProfile());
                             toast.success("🎉 Pass Active! Enjoy unlimited access!");
-                            setTimeout(() => window.location.reload(), 1500);
+                            setTimeout(() => navigate("/student-dashboard?tab=my-tests"), 1500);
                         } else {
                             toast.error("Payment verification failed. Contact support.");
                         }

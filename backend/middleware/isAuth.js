@@ -50,9 +50,12 @@ export const isAuth = async (req, res, next) => {
  * Middleware to restrict access to Admin only
  */
 export const isAdmin = (req, res, next) => {
-  if (req.user && req.user.role === "admin") {
+  const userRole = req.user?.role?.toLowerCase()?.trim() || "";
+  
+  if (req.user && userRole === "admin") {
     next();
   } else {
+    console.error(`🔴 ACCESS_FORBIDDEN: User ${req.user?._id} has role: "${req.user?.role}"`);
     return res.status(403).json({
       success: false,
       message: "Forbidden. Admin access required.",

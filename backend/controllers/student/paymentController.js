@@ -216,8 +216,8 @@ export const verifyPayment = async (req, res) => {
                    userDoc.rePurchasedTests.push({ testId, bonusAttempts: (testDoc.repurchaseAttempts || 1) });
                 }
              } else {
-                // First time purchase
-                if (!userDoc.purchasedTests.includes(testId)) {
+                // First time purchase - Use .some() for robust ObjectId comparison
+                if (!userDoc.purchasedTests.some(id => id.toString() === testId.toString())) {
                    userDoc.purchasedTests.push(testId);
                 }
              }

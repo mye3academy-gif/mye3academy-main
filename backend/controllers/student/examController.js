@@ -77,47 +77,46 @@ export const startTestAttempt = async (req, res) => {
       }
     }
 
-    // 3. Attempt Limit Check
-    const maxAttempts = mocktest.maxAttempts ?? 1; // default 1 if not set
+    // 3. Attempt Limit Check (Unified)
+    const userForLimits = await User.findById(studentId).select("rePurchasedTests activeSubscriptions").populate("activeSubscriptions.planId");
+    
+    // Robust Matching: Use .toString() on both sides to avoid ObjectId vs String comparison failures
+    const bonusObj = (userForLimits?.rePurchasedTests || []).find(
+      r => r.testId && r.testId.toString() === mockTestId.toString()
+    );
+    const bonusAttempts = bonusObj ? bonusObj.bonusAttempts : 0;
+    
+    // Find highest extra attempts from active subscriptions
+    let subExtra = 0;
+    let isUnlimitedSub = false;
+    const now2 = new Date();
+    const activeSubs2 = (userForLimits?.activeSubscriptions || []).filter(sub => sub.planId && new Date(sub.expiresAt) > now2);
+    for (const sub of activeSubs2) {
+      const plan = sub.planId;
+      if (!plan) continue;
+      const catMatch = plan.categories?.some(cId => cId.toString() === mocktest.category?.toString());
+      if (catMatch) {
+        if (plan.extraAttempts === -1) isUnlimitedSub = true;
+        else subExtra = Math.max(subExtra, plan.extraAttempts || 0);
+      }
+    }
 
-    if (maxAttempts > 0) { // 0 = unlimited
-      const completedCount = await Attempt.countDocuments({
+    const testMax = mocktest.maxAttempts || 1;
+    let totalMax = testMax + bonusAttempts + subExtra;
+    if (isUnlimitedSub) totalMax = Infinity;
+
+    if (totalMax !== Infinity) {
+      const attemptsMade = await Attempt.countDocuments({
         studentId,
-        mocktestId: mockTestId,
-        status: "completed"
+        mocktestId: mockTestId
       });
 
-      if (completedCount >= maxAttempts) {
-        // Check if subscription gives extra attempts
-        const userDoc2 = await User.findById(studentId)
-          .select("activeSubscriptions")
-          .populate("activeSubscriptions.planId");
-
-        const now2 = new Date();
-        const activeSubs2 = (userDoc2?.activeSubscriptions || []).filter(
-          sub => sub.planId && new Date(sub.expiresAt) > now2
-        );
-
-        let totalAllowedAttempts = maxAttempts;
-        for (const sub of activeSubs2) {
-          const plan = sub.planId;
-          if (!plan) continue;
-          const catMatch = plan.categories?.some(
-            cId => cId.toString() === mocktest.category?.toString()
-          );
-          if (catMatch) {
-            if (plan.extraAttempts === -1) { totalAllowedAttempts = Infinity; break; }
-            totalAllowedAttempts += (plan.extraAttempts || 0);
-          }
-        }
-
-        if (completedCount >= totalAllowedAttempts) {
-          return res.status(403).json({
-            success: false,
-            attemptsExhausted: true,
-            message: `You have used all ${completedCount} attempt(s) for this test. Subscribe to a plan or re-purchase to get more attempts.`
-          });
-        }
+      if (attemptsMade >= totalMax) {
+        return res.status(403).json({ 
+          success: false, 
+          message: `Attempt limit reached (${attemptsMade}/${totalMax}). Please unlock again to continue.`,
+          debugInfo: { attemptsMade, totalMax, bonusAttempts, subExtra, testMax } 
+        });
       }
     }
 

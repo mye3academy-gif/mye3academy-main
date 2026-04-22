@@ -7,8 +7,12 @@ import {
     Play,
     ShoppingBag
 } from 'lucide-react';
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import { CgSpinner } from "react-icons/cg";
 import api from "../../api/axios";
 import { getImageUrl, handleImageError } from "../../utils/imageHelper";
+import { fetchMyMockTests, addPurchasedTest, setUserData } from "../../redux/userSlice";
 
 const StatItem = ({ icon: Icon, value, label, accentColorClass }) => (
     <div className="text-center">
@@ -20,6 +24,9 @@ const StatItem = ({ icon: Icon, value, label, accentColorClass }) => (
 
 const MyTestCard = ({ test }) => {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { userData } = useSelector((state) => state.user);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const imgSrc = getImageUrl(test.thumbnail);
 
@@ -30,7 +37,7 @@ const MyTestCard = ({ test }) => {
     const isGrandTest = test.isGrandTest === true;
     const progress = isCompleted ? 100 : test.progress || 0;
 
-    const isLimitReached = test.mocktestId?.allowedAttempts && test.attemptsMade >= test.mocktestId.allowedAttempts;
+    const isLimitReached = test.isPurchaseRequired === true;
     const hasAttempts = test.attemptsMade > 0;
 
     const handleAction = (e) => {
@@ -38,13 +45,107 @@ const MyTestCard = ({ test }) => {
         const testId = String(test._id);
 
         if (isLimitReached) {
-            // Redirect to test detail page for re-purchase or more info
-            navigate(`/test/${test.mocktestId?._id || test.mocktestId}`);
+            handlePurchase();
             return;
         }
         
         if (isReadyForNewAttempt || test.status === 'not_started' || test.status === 'in-progress' || !test.status) {
             navigate(`/student/instructions/${testId}`);
+        }
+    };
+
+    const loadRazorpayScript = () => {
+        return new Promise((resolve) => {
+            if (window.Razorpay) return resolve(true);
+            const script = document.createElement("script");
+            script.src = "https://checkout.razorpay.com/v1/checkout.js";
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+        });
+    };
+
+    const handlePurchase = async () => {
+        if (isProcessing) return;
+        setIsProcessing(true);
+        const toastId = toast.loading("Initializing purchase...");
+
+        try {
+            const originalTestId = test.mocktestId?._id || test.mocktestId || test._id;
+
+            // 1. Create Order
+            const { data: orderData } = await api.post("/api/payment/create-order", {
+                cartItems: [originalTestId]
+            });
+
+            if (!orderData.success) throw new Error(orderData.message || "Order creation failed");
+
+            // 2. Handle Mock vs Real
+            if (orderData.id.startsWith("mock_order_")) {
+                const { data: verifyData } = await api.post("/api/payment/verify-payment", {
+                    razorpay_order_id: orderData.id,
+                    razorpay_payment_id: "mock_pay_" + Date.now(),
+                    razorpay_signature: "mock_sig_" + Date.now(),
+                });
+
+                if (verifyData.success) {
+                    dispatch(addPurchasedTest(originalTestId));
+                    if (verifyData.user) dispatch(setUserData(verifyData.user));
+                    await dispatch(fetchMyMockTests());
+                    toast.update(toastId, { render: "New Attempt Unlocked!", type: "success", isLoading: false, autoClose: 3000 });
+                }
+                setIsProcessing(false);
+                return;
+            }
+
+            // 3. Paid Flow
+            const res = await loadRazorpayScript();
+            if (!res) {
+                toast.update(toastId, { render: "Payment gateway failed to load.", type: "error", isLoading: false, autoClose: 3000 });
+                setIsProcessing(false);
+                return;
+            }
+
+            const options = {
+                key: orderData.keyId,
+                amount: orderData.amount,
+                currency: orderData.currency,
+                name: "Mye3 Academy",
+                description: `Purchase attempts for ${test.title}`,
+                order_id: orderData.id,
+                handler: async (response) => {
+                    try {
+                        toast.update(toastId, { render: "Verifying...", isLoading: true });
+                        const { data: verifyData } = await api.post("/api/payment/verify-payment", {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                        });
+
+                        if (verifyData.success) {
+                            dispatch(addPurchasedTest(originalTestId));
+                            if (verifyData.user) dispatch(setUserData(verifyData.user));
+                            await dispatch(fetchMyMockTests());
+                            toast.update(toastId, { render: "New Attempt Unlocked!", type: "success", isLoading: false, autoClose: 3000 });
+                        }
+                    } catch (err) {
+                        toast.error("Verification failed");
+                    } finally {
+                        setIsProcessing(false);
+                    }
+                },
+                prefill: { name: userData?.name, email: userData?.email },
+                theme: { color: "#2563eb" },
+                modal: { ondismiss: () => { setIsProcessing(false); toast.dismiss(toastId); } }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.open();
+
+        } catch (error) {
+            console.error("Purchase Error:", error);
+            toast.update(toastId, { render: error.message || "Failed to initialize payment", type: "error", isLoading: false, autoClose: 3000 });
+            setIsProcessing(false);
         }
     };
 
@@ -195,12 +296,17 @@ const MyTestCard = ({ test }) => {
                 
                 <button
                     onClick={handleAction}
-                    className={`${hasAttempts ? 'flex-[1.5]' : 'w-full'} py-2 px-1 sm:py-2.5 rounded-lg text-[9px] sm:text-[11px] font-black uppercase tracking-widest text-white transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg ${isLimitReached ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-200/50' : theme.button}`}
+                    disabled={isProcessing}
+                    className={`${hasAttempts ? 'flex-[1.5]' : 'w-full'} py-2 px-1 sm:py-2.5 rounded-lg text-[9px] sm:text-[11px] font-black uppercase tracking-widest text-white transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg ${isLimitReached ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-200/50' : theme.button} disabled:opacity-70 disabled:cursor-wait`}
                 >
                     <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="truncate">{buttonText}</span>
-                        {!isLimitReached && <Play size={10} fill="currentColor" className="shrink-0" />}
-                        {isLimitReached && <ShoppingBag size={10} className="shrink-0" />}
+                        {isProcessing ? (
+                            <CgSpinner size={14} className="animate-spin" />
+                        ) : (
+                            <span className="truncate">{buttonText}</span>
+                        )}
+                        {!isLimitReached && !isProcessing && <Play size={10} fill="currentColor" className="shrink-0" />}
+                        {isLimitReached && !isProcessing && <ShoppingBag size={10} className="shrink-0" />}
                     </div>
                 </button>
             </div>

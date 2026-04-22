@@ -37,7 +37,11 @@ export default function MockTestDetail() {
             ? Number(test?.discountPrice)
             : Number(test?.price || 0);
 
-    const canStart = test?.isFree || effectivePrice <= 0 || isPurchased;
+    // Determine if this specific test has attempts exhausted and needs re-purchase
+    const enrolledData = myMockTests?.find(t => String(t._id) === String(id));
+    const isLimitReached = enrolledData?.isPurchaseRequired === true;
+
+    const canStart = (test?.isFree || effectivePrice <= 0 || isPurchased) && !isLimitReached;
 
     const [isProcessing, setIsProcessing] = React.useState(false);
 

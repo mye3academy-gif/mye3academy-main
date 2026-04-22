@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { ChevronRight, Search, ArrowLeft } from "lucide-react";
-import { fetchPublicMockTests, resetPublicFilters } from "../redux/studentSlice";
+import { fetchPublicMockTests, resetPublicFilters, fetchPublicSubscriptions } from "../redux/studentSlice";
+import SubscriptionPassBanner from "../components/student/SubscriptionPassBanner";
 import { fetchCategories } from "../redux/categorySlice";
 import { getImageUrl, handleImageError } from "../utils/imageHelper";
 import MockTestCard from "../components/MockTestCard";
@@ -14,7 +15,7 @@ const normalizeSub = (s) => (s || "General").toString().toLowerCase().replace(/\
 export default function AllMockTests({ overrideType }) {
   const dispatch = useDispatch();
 
-  const { publicMocktests, publicStatus } = useSelector((s) => s.students);
+  const { publicMocktests, publicStatus, publicSubscriptions } = useSelector((s) => s.students);
   const { items: categories, loading: catLoading } = useSelector((s) => s.category);
   const { userData } = useSelector((s) => s.user);
 
@@ -27,6 +28,7 @@ export default function AllMockTests({ overrideType }) {
     dispatch(fetchCategories());
     dispatch(resetPublicFilters());
     dispatch(fetchPublicMockTests(""));
+    dispatch(fetchPublicSubscriptions());
   }, [dispatch]);
 
   // Auto-select first category
@@ -83,6 +85,15 @@ export default function AllMockTests({ overrideType }) {
   }, [testsInCategory, selectedSub, search]);
 
   const selectedCat  = categories.find((c) => c._id === selectedCatId);
+
+  // Find a subscription plan that covers this category
+  const activePlanForCategory = useMemo(() => {
+    if (!publicSubscriptions || !selectedCatId) return null;
+    return publicSubscriptions.find(plan => 
+      plan.categories?.some(cat => String(cat._id || cat) === String(selectedCatId))
+    );
+  }, [publicSubscriptions, selectedCatId]);
+
   const isSubscribed = subscribedCatIds.has(String(selectedCatId));
 
   // Total test count across all categories
@@ -178,14 +189,24 @@ export default function AllMockTests({ overrideType }) {
         {/* RIGHT: Content */}
         <div className="flex-1 overflow-y-auto bg-white">
 
+            {/* ── SUBSCRIPTION BANNER ── */}
+            {stage === STAGES.SUBCATEGORY && activePlanForCategory && (
+               <div className="px-6 pt-6">
+                 <SubscriptionPassBanner 
+                    pass={activePlanForCategory} 
+                    categoryName={selectedCat?.name} 
+                 />
+               </div>
+            )}
+
             {/* ── SUBCATEGORY GRID ── */}
             {stage === STAGES.SUBCATEGORY && (
               <div className="p-6">
-                {isSubscribed && (
+                {/* {isSubscribed && (
                   <div className="mb-4 flex items-center gap-2 text-sm font-bold text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-4 py-2 w-fit">
                     👑 You have a subscription pass for this category
                   </div>
-                )}
+                )} */}
 
                 {publicStatus === "loading" ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
