@@ -6,7 +6,16 @@ import User from "../models/Usermodel.js";
  */
 export const isAuth = async (req, res, next) => {
   try {
-    const { token } = req.cookies;
+    // 1. Try to get token from Authorization header first (Bearer token)
+    let token = null;
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+
+    // 2. Fallback to cookies if not in headers
+    if (!token && req.cookies) {
+      token = req.cookies.token;
+    }
 
     if (!token) {
       return res

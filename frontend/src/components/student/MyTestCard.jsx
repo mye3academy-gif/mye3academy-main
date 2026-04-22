@@ -83,13 +83,13 @@ const MyTestCard = ({ test }) => {
     let statusLabel = "Ready";
 
     if (isLimitReached) {
-        buttonText = "Enroll Again";
+        buttonText = "Buy New Attempt";
         statusLabel = "Limit Reached";
     } else if (isCompleted && !isReadyForNewAttempt) {
         buttonText = "Re-attempt";
         statusLabel = "Completed";
     } else if (isInProgress) {
-        buttonText = "Resume Exam";
+        buttonText = "Start Exam";
         statusLabel = "In Progress";
     } else if (isReadyForNewAttempt) {
         buttonText = "Start New";

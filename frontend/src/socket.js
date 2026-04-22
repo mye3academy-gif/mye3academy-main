@@ -6,13 +6,15 @@ let socket;
 export const initSocket = (userId) => {
   // Only connect if not already connected
   if (!socket) {
-    socket = io(import.meta.env.VITE_SERVER_URL, {
+    const socketUrl = import.meta.env.VITE_SERVER_URL || "http://localhost:8000";
+    socket = io(socketUrl, {
       query: { userId },
-      transports: ["polling", "websocket"], 
+      transports: ["websocket", "polling"], 
       withCredentials: true,
       reconnection: true,
-      reconnectionAttempts: 5,
-      timeout: 20000,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000, 
+      timeout: 30000,
     });
 
     socket.on("connect_error", (err) => {

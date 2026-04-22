@@ -446,7 +446,18 @@ const WriteMocktest = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [isTimeOver, setIsTimeOver] = useState(false);
   const isSubmittedRef = React.useRef(false); // tracks if exam is done
+  const answersRef = React.useRef({}); // for background submission
+  const attemptIdRef = React.useRef(attemptId);
   const endsAt = attempt?.endsAt;
+
+  // Sync refs with state for use in event listeners
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
+
+  useEffect(() => {
+    attemptIdRef.current = attemptId;
+  }, [attemptId]);
 
   // --- DERIVED STATE ---
   const isFreeTest = useMemo(() => {
@@ -629,6 +640,36 @@ const WriteMocktest = () => {
     handleSubmit(true);
   }, [handleSubmit]);
 
+  /* --- BACKGROUND SUBMISSION (FOR TAB CLOSE) --- */
+  const sendBackgroundSubmission = useCallback(() => {
+    if (isSubmittedRef.current) return;
+    
+    // Format answers from REF
+    const formattedAnswers = Object.entries(answersRef.current).map(([id, a]) => ({
+      questionId: id,
+      selectedAnswer:
+        a.manual?.trim() !== ""
+          ? a.manual
+          : a.selected?.length
+            ? a.selected[0]
+            : null,
+    }));
+
+    const finalData = JSON.stringify({ answers: formattedAnswers });
+    const url = `${import.meta.env.VITE_SERVER_URL}/api/student/submit-test/${attemptIdRef.current}`;
+    
+    // Use fetch with keepalive to ensure it reaches the server even if tab is closed
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: finalData,
+      keepalive: true,
+      credentials: 'include' // Important for auth cookies
+    }).catch(err => console.error("Background Submit Error:", err));
+    
+    isSubmittedRef.current = true; // prevent double submit
+  }, []);
+
   /* --- LOAD ATTEMPT --- */
   useEffect(() => {
     // Auto-enter fullscreen when exam starts
@@ -642,7 +683,7 @@ const WriteMocktest = () => {
         setTabViolations((v) => {
           const next = v + 1;
           if (next >= MAX_VIOLATIONS) {
-            toast.error("Too many tab switches! Auto-submitting...");
+            toast.error("Security violation! Auto-submitting...");
             handleSubmit(true);
           }
           return next;
@@ -656,11 +697,20 @@ const WriteMocktest = () => {
       }
     };
 
+    // FORCE SUBMIT ON TAB CLOSE / NAVIGATION
+    const handlePageHide = () => {
+      if (!isSubmittedRef.current) {
+        sendBackgroundSubmission();
+      }
+    };
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("blur", handleBlur);
+    window.addEventListener("pagehide", handlePageHide);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("pagehide", handlePageHide);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

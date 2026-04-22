@@ -31,11 +31,14 @@ export const startTestAttempt = async (req, res) => {
     
     if (!mocktest) return res.status(404).json({ success: false, message: "Mocktest not found" });
 
-    // 1. Resume existing test check
+    // 1. CLEAR OLD ATTEMPTS: If a test is 'in-progress', force complete it first.
+    // This removes the "resume" ability and ensures every start is a fresh attempt.
     const latestAttempt = await Attempt.findOne({ studentId, mocktestId: mockTestId }).sort({ createdAt: -1 });
     if (latestAttempt && latestAttempt.status === "in-progress") {
-      if (new Date(latestAttempt.endsAt) < new Date()) return res.status(403).json({ message: "Exam time expired." });
-      return res.status(200).json({ success: true, attemptId: latestAttempt._id, endsAt: latestAttempt.endsAt });
+      latestAttempt.status = "completed";
+      latestAttempt.submittedAt = new Date();
+      await latestAttempt.save();
+      console.log(`📡 [EXAM] Force completed old attempt ${latestAttempt._id} for user ${studentId}`);
     }
 
     // 2. Purchase / Subscription check (Price > 0 and not explicitly marked as free)

@@ -241,12 +241,9 @@ const TestAttemptsReport = () => {
                                                             Review <ChevronRight className="w-3 h-3" />
                                                         </Link>
                                                     ) : (
-                                                        <Link 
-                                                            to={`/student/write-test/${attempt._id}`}
-                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition shadow-sm active:scale-95"
-                                                        >
-                                                            Resume <ChevronRight className="w-3 h-3" />
-                                                        </Link>
+                                                        <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">
+                                                            Incomplete
+                                                        </span>
                                                     )}
                                                 </td>
                                             </tr>

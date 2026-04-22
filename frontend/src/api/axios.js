@@ -2,14 +2,25 @@
 import axios from "axios";
 
 // Set baseURL to the root of the server
-const base =
-  import.meta.env.VITE_SERVER_URL || "https://mye3academy.com/api";
+const base = import.meta.env.VITE_SERVER_URL || "http://localhost:8000";
 const instance = axios.create({
   baseURL: base,
   withCredentials: true, 
 });
 
 export default instance;
+
+// Add a request interceptor to include the token in headers
+instance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // Add a response interceptor
 instance.interceptors.response.use(

@@ -370,7 +370,7 @@ const InstructionsPage = () => {
                   ) : (
                     <Play size={16} fill="white" />
                   )}
-                  {isInProgress ? "Resume Examination" : isReadyToRetry ? "Start Re-attempt" : "Start Examination"}
+                  {isInProgress ? "Start Examination" : isReadyToRetry ? "Start Re-attempt" : "Start Examination"}
                 </button>
                 
                 {test.attemptsMade > 0 && (
