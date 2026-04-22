@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { ChevronRight, Search, ArrowLeft } from "lucide-react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { ChevronRight, Search, ArrowLeft, Loader2 } from "lucide-react";
 import { fetchPublicMockTests, resetPublicFilters, fetchPublicSubscriptions } from "../redux/studentSlice";
+import { fetchMyProfile } from "../redux/userSlice";
 import SubscriptionPassBanner from "../components/student/SubscriptionPassBanner";
 import { fetchCategories } from "../redux/categorySlice";
 import { getImageUrl, handleImageError } from "../utils/imageHelper";
@@ -14,29 +16,39 @@ const normalizeSub = (s) => (s || "General").toString().toLowerCase().replace(/\
 
 export default function AllMockTests({ overrideType }) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { publicMocktests, publicStatus, publicSubscriptions } = useSelector((s) => s.students);
   const { items: categories, loading: catLoading } = useSelector((s) => s.category);
   const { userData } = useSelector((s) => s.user);
 
-  const [selectedCatId, setSelectedCatId] = useState(null);
-  const [selectedSub,   setSelectedSub]   = useState(null);
-  const [stage,         setStage]         = useState(STAGES.SUBCATEGORY);
+  // Derive state from URL params
+  const selectedCatId = searchParams.get("category");
+  const selectedSub   = searchParams.get("sub");
+  const stage         = selectedSub ? STAGES.TESTS : STAGES.SUBCATEGORY;
+
   const [search,        setSearch]        = useState("");
+  const [isSyncing,     setIsSyncing]     = useState(false);
 
   useEffect(() => {
     dispatch(fetchCategories());
     dispatch(resetPublicFilters());
     dispatch(fetchPublicMockTests(""));
     dispatch(fetchPublicSubscriptions());
+
+    // Sync profile on load to handle recent purchases
+    if (userData) {
+      dispatch(fetchMyProfile());
+    }
   }, [dispatch]);
 
-  // Auto-select first category
+  // Auto-select first category if none in URL
   useEffect(() => {
     if (categories.length && !selectedCatId) {
-      setSelectedCatId(categories[0]._id);
+      setSearchParams({ category: categories[0]._id }, { replace: true });
     }
-  }, [categories]);
+  }, [categories, selectedCatId, setSearchParams]);
 
   // Subscribed category IDs
   const subscribedCatIds = useMemo(() => {
@@ -100,15 +112,17 @@ export default function AllMockTests({ overrideType }) {
   const totalTests = publicMocktests?.length || 0;
 
   const handleCatClick = (catId) => {
-    setSelectedCatId(catId);
-    setSelectedSub(null);
-    setStage(STAGES.SUBCATEGORY);
+    setSearchParams({ category: catId });
     setSearch("");
   };
 
   const handleSubClick = (subName) => {
-    setSelectedSub(subName);
-    setStage(STAGES.TESTS);
+    setSearchParams({ category: selectedCatId || "", sub: subName });
+    setSearch("");
+  };
+
+  const handleBackToSub = () => {
+    setSearchParams({ category: selectedCatId || "" });
     setSearch("");
   };
 
@@ -195,6 +209,8 @@ export default function AllMockTests({ overrideType }) {
                  <SubscriptionPassBanner 
                     pass={activePlanForCategory} 
                     categoryName={selectedCat?.name} 
+                    isSubscribed={isSubscribed}
+                    selectedCatId={selectedCatId}
                  />
                </div>
             )}
@@ -269,7 +285,7 @@ export default function AllMockTests({ overrideType }) {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                   <div className="flex items-center gap-3">
                     <button
-                      onClick={() => { setStage(STAGES.SUBCATEGORY); setSelectedSub(null); setSearch(""); }}
+                      onClick={handleBackToSub}
                       className="flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
                     >
                       <ArrowLeft size={16} /> {selectedCat?.name}

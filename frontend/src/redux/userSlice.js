@@ -48,6 +48,20 @@ export const fetchMyMockTests = createAsyncThunk(
     }
 );
 
+export const fetchMyProfile = createAsyncThunk(
+    "user/fetchMyProfile",
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get("/api/student/profile");
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || "Failed to refresh profile"
+            );
+        }
+    }
+);
+
 // -------------------------------------------------------------
 
 // Helper function to safely parse user data from localStorage
@@ -130,6 +144,16 @@ const userSlice = createSlice({
                 state.myMockTestsStatus = "failed";
                 state.myMockTestsError = action.payload;
                 state.myMockTests = [];
+            })
+            // REFRESH PROFILE HANDLER
+            .addCase(fetchMyProfile.fulfilled, (state, action) => {
+                if (action.payload) {
+                    if (action.payload.role) {
+                        action.payload.role = action.payload.role.trim();
+                    }
+                    state.userData = action.payload;
+                    localStorage.setItem("userData", JSON.stringify(action.payload));
+                }
             });
     },
 });

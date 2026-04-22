@@ -6,7 +6,7 @@ import api from "../../api/axios";
 import { Crown, CheckCircle2, ArrowRight } from "lucide-react";
 import { fetchStudentProfile } from "../../redux/studentSlice"; 
 
-export default function SubscriptionPassBanner({ pass, categoryName }) {
+export default function SubscriptionPassBanner({ pass, categoryName, isSubscribed, selectedCatId }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const { userData } = useSelector((state) => state.user);
     const dispatch = useDispatch();
@@ -14,8 +14,8 @@ export default function SubscriptionPassBanner({ pass, categoryName }) {
 
     if (!pass) return null;
 
-    // Check if user already has this subscription active
-    const hasActivePass = userData?.activeSubscriptions?.some(
+    // Check if user already has this subscription active or category covered
+    const hasActivePass = isSubscribed || userData?.activeSubscriptions?.some(
         (sub) => {
             const subPlanId = sub.planId?._id?.toString() || sub.planId?.toString();
             const passId = pass._id?.toString();

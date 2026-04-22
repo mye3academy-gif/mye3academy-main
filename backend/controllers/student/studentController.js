@@ -87,8 +87,8 @@ export const getMyPurchasedTests = async (req, res) => {
       // Unlock entire categories
       for (const catId of (plan.categories || [])) {
         const [mocks, grand] = await Promise.all([
-          MockTest.find({ category: catId, isPublished: true }).select(selectFields).populate("category", "name slug").lean(),
-          GrandTest.find({ category: catId, isPublished: true }).select(selectFields).populate("category", "name slug").lean(),
+          MockTest.find({ category: catId }).select(selectFields).populate("category", "name slug").lean(),
+          GrandTest.find({ category: catId }).select(selectFields).populate("category", "name slug").lean(),
         ]);
         mocks.forEach(t => subscriptionTests.push({ ...t, isGrandTest: false, _fromSubscription: true, _planName: plan.name, _extraAttempts: plan.extraAttempts || 0 }));
         grand.forEach(t => subscriptionTests.push({ ...t, isGrandTest: true, _fromSubscription: true, _planName: plan.name, _extraAttempts: plan.extraAttempts || 0 }));
