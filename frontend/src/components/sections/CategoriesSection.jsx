@@ -53,7 +53,7 @@ const CategoriesSection = ({ categories = [], loading }) => {
 
         {/* Header — matches Testbook exactly */}
         <div className="mb-5">
-          <h2 className="text-2xl font-bold text-slate-800">Popular Exams</h2>
+          <h2 className="text-2xl font-bold text-slate-800">All Tests</h2>
           <p className="text-sm text-slate-500 mt-1">
             Get exam-ready with concepts, questions and study notes as per the latest pattern
           </p>
@@ -143,10 +143,10 @@ const CategoriesSection = ({ categories = [], loading }) => {
                   <div
                     key={item._id}
                     onClick={handleClick}
-                    className="group flex items-center gap-4 px-5 py-3.5 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-200 cursor-pointer"
+                    className="group flex items-center gap-4 px-5 py-3.5 bg-white border border-slate-100 border-t-4 border-t-emerald-500 rounded-lg shadow-sm hover:shadow-md hover:border-t-orange-400 transition-all duration-300 cursor-pointer"
                   >
                     {/* Circular icon container - optimized size for 3-column layout */}
-                    <div className="w-12 h-12 flex-none rounded-full bg-slate-50 flex items-center justify-center overflow-hidden shrink-0 border border-slate-100">
+                    <div className="w-12 h-12 flex-none rounded-full bg-emerald-50 flex items-center justify-center overflow-hidden shrink-0 border border-emerald-100 group-hover:bg-white group-hover:scale-105 transition-all duration-300">
                       {testIcon ? (
                         <img
                           src={testIcon}

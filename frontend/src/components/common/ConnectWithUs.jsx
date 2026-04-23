@@ -31,7 +31,7 @@ const ConnectWithUs = () => {
             <div className="fixed right-0 top-1/2 -translate-y-1/2 z-[60] flex flex-col items-end">
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="group relative flex items-center bg-[#ff9d43] text-white py-3 px-4 rounded-l-2xl shadow-xl hover:bg-[#ff8a1d] transition-all duration-300"
+                    className="group relative flex items-center bg-[#ff9d43] text-white py-2.5 px-3 md:py-3 md:px-4 rounded-l-2xl shadow-xl hover:bg-[#ff8a1d] transition-all duration-300"
                 >
                     <div className="hidden group-hover:block mr-2 text-xs font-black uppercase tracking-widest animate-fadeIn">
                         Connect With Us

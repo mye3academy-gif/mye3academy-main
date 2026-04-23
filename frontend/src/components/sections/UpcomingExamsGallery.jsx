@@ -48,17 +48,17 @@ const UpcomingExamsGallery = ({ data = { upcoming: [], popular: [] }, loading })
       <div
         key={item._id}
         onClick={handleClick}
-        className="group flex flex-col items-center text-center gap-2 p-3 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-200 cursor-pointer relative md:flex-row md:text-left md:px-5 md:py-3.5 md:gap-4 md:rounded-xl"
+        className="group flex flex-col items-center text-center gap-2 p-3 bg-white border border-slate-100 border-t-4 border-t-emerald-500 rounded-lg shadow-sm hover:shadow-md hover:border-t-orange-400 transition-all duration-300 cursor-pointer relative md:flex-row md:text-left md:px-5 md:py-3.5 md:gap-4"
       >
         {/* Status Badge for "Upcoming" */}
         {item.isUpcoming && (
-          <span className="absolute -top-1.5 -right-1 px-1.5 py-0.5 bg-rose-500 text-white text-[7px] md:text-[8px] font-black rounded-md tracking-widest uppercase shadow-sm z-10 animate-pulse">
+          <span className="absolute -top-1.5 -right-1 px-1.5 py-0.5 bg-orange-500 text-white text-[7px] md:text-[8px] font-black rounded-md tracking-widest uppercase shadow-sm z-10 animate-pulse">
              Upcoming
           </span>
         )}
         
         {/* Logo Container */}
-        <div className="w-10 h-10 md:w-12 md:h-12 flex-none rounded-full bg-slate-50 flex items-center justify-center overflow-hidden shrink-0 border border-slate-100 group-hover:bg-white group-hover:scale-105 transition-all duration-300">
+        <div className="w-10 h-10 md:w-12 md:h-12 flex-none rounded-full bg-emerald-50 flex items-center justify-center overflow-hidden shrink-0 border border-emerald-100 group-hover:bg-white group-hover:scale-105 transition-all duration-300">
           {icon ? (
             <img
               src={icon}
@@ -93,7 +93,7 @@ const UpcomingExamsGallery = ({ data = { upcoming: [], popular: [] }, loading })
           <div>
             <div className="flex items-center gap-2 mb-6">
               <h2 className="text-xl font-black text-slate-800 tracking-tight uppercase">
-                Upcoming Popular Exams
+                Mock Tests
               </h2>
               <div className="h-1 flex-1 bg-slate-100 rounded-full mx-4 hidden md:block"></div>
               <Zap size={20} className="text-rose-500 fill-rose-500 animate-pulse shrink-0" />

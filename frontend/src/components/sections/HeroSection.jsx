@@ -12,13 +12,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import heroBanner from "../../assets/home-banner.svg";
 import carousel1 from "../../assets/carousel1.png";
 import carousel2 from "../../assets/carousel 2.png";
+import carousel3 from "../../assets/carousel 3.png";
 
 const HeroSection = () => {
   const navigate = useNavigate();
   const { userData } = useSelector((state) => state.user);
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const slides = [carousel1, carousel2];
+  const slides = [carousel1, carousel2, carousel3];
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -59,7 +60,7 @@ const HeroSection = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.5 }}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
                 alt={`Banner ${currentSlide + 1}`}
               />
             </AnimatePresence>

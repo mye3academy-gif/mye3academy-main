@@ -188,7 +188,7 @@ const InstructionsPage = () => {
           </button>
           <Link
             to="/"
-            className="flex items-center gap-1.5 font-black text-sm italic tracking-tighter text-slate-700 hover:text-blue-600 transition-colors"
+            className="flex items-center gap-1.5 font-black text-sm tracking-tighter text-slate-700 hover:text-blue-600 transition-colors"
           >
             <img 
               src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`} 

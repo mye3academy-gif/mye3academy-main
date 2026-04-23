@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -24,15 +26,13 @@
   }
 
   * {
-    font-family: inherit;
-  }
-
-  body, button, input, select, textarea, span, p, div, a, li, th, td, table, thead, tbody, tr {
-    font-family: 'Poppins' !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-style: normal !important; /* No italics globally */
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Poppins' !important;
+    font-weight: 900 !important; /* Extra Bold/Black Headings */
+    font-family: 'Outfit', sans-serif !important;
   }
 }
 
@@ -67,8 +67,8 @@
 }
 
 @layer utilities {
-  .font-sans, .font-poppins {
-    font-family: 'Poppins' !important;
+  .font-sans, .font-outfit {
+    font-family: 'Outfit', sans-serif !important;
   }
 }
 

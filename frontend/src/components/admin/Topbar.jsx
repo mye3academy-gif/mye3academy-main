@@ -34,7 +34,7 @@ const Topbar = ({ setMobileOpen, adminProfile, avatarUrl }) => {
           <Menu size={20} className="text-slate-600" />
         </button>
         <div className="flex flex-col">
-            <h1 className="text-lg font-bold text-slate-800 tracking-tight leading-none">{getPageTitle(location.pathname)}</h1>
+            <h1 className="text-base md:text-lg font-bold text-slate-800 tracking-tight leading-none">{getPageTitle(location.pathname)}</h1>
         </div>
       </div>
 

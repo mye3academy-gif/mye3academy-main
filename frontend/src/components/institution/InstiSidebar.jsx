@@ -154,7 +154,13 @@ const InstiSidebar = () => {
   return (
     <>
       <div className="md:hidden fixed top-0 left-0 w-full p-4 bg-[#a332ff] z-50 flex justify-between border-b border-white/10 shadow-lg">
-        <h1 className="font-black text-white">MYE 3 ACADEMY</h1>
+        <Link to="/">
+          <img 
+            src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`}
+            alt="Mye3 Logo"
+            className="h-6 w-auto object-contain brightness-0 invert"
+          />
+        </Link>
         <button onClick={() => setShowMobileSidebar(!showMobileSidebar)}>
           {showMobileSidebar ? <X className="text-white" /> : <Menu className="text-white" />}
         </button>
@@ -172,9 +178,13 @@ const InstiSidebar = () => {
         ${showMobileSidebar ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
       >
         <div className="px-6 py-6 border-b border-white/10">
-          <h2 className="text-xs font-black uppercase tracking-widest text-white">
-            MYE 3 Academy
-          </h2>
+          <Link to="/">
+            <img 
+              src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`}
+              alt="Mye3 Logo"
+              className="h-8 w-auto object-contain brightness-0 invert mb-1"
+            />
+          </Link>
           <p className="text-xs text-white/60 font-bold">INSTITUTION</p>
         </div>
 

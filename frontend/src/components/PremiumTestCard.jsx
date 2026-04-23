@@ -84,119 +84,125 @@ const PremiumTestCard = ({ test, index = 0 }) => {
       transition={{ duration: 0.4, delay: index * 0.05 }}
       whileHover={{ y: -8 }}
       onClick={() => navigateToTest(test._id)}
-      className={`flex flex-col bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-2xl hover:${theme.shadow}/60 transition-all duration-500 overflow-hidden cursor-pointer group h-full`}
+      className={`flex flex-col bg-white border border-slate-100 border-t-4 border-t-orange-400 rounded-lg shadow-sm hover:shadow-2xl hover:${theme.shadow}/60 transition-all duration-500 overflow-hidden cursor-pointer group h-full`}
     >
-      {/* ── HEADER (Peach Theme) ── */}
-      <div className={`pt-3 px-3 pb-1 ${theme.headerBg} relative border-b border-slate-50`}>
-        <div className="flex justify-between items-start relative z-10">
-          {/* Circular Logo - Enhanced Elevation */}
-          <div className="relative group/logo">
-            <div className="absolute -inset-1 rounded-full blur-2xl opacity-30 group-hover/logo:opacity-50 transition-opacity duration-700 bg-orange-400"></div>
-            
-            <div className="w-10 h-10 rounded-full bg-white shadow-xl border-2 border-white flex items-center justify-center overflow-hidden transform group-hover/logo:scale-110 group-hover/logo:rotate-3 transition-all duration-500 relative z-20">
-              <div className="absolute inset-0 opacity-10 bg-gradient-to-tr from-orange-400 to-transparent"></div>
-              <img
-                src={cardImage}
-                alt="Category"
-                onError={handleImageError}
-                className="w-full h-full object-contain p-2 relative z-10"
-              />
+      {/* ── MOBILE COMPACT VERSION (Hidden on Desktop) ── */}
+      <div className="sm:hidden p-4 flex flex-col flex-grow">
+        <h3 className={`text-[14px] font-black text-slate-800 leading-tight mb-1 transition-colors tracking-tight uppercase line-clamp-2`}>
+          {test.title}
+        </h3>
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 italic">
+          {test.languages && test.languages.length > 0 ? test.languages.join(", ") : "ENGLISH"}
+        </p>
+        
+        <div className="mt-auto">
+          <button
+            onClick={handleAction}
+            className={`w-full py-2.5 ${theme.buttonBg} text-white rounded-lg font-black text-[10px] uppercase tracking-[0.15em] flex items-center justify-center gap-1.5`}
+          >
+            VIEW TEST
+            <ChevronRight size={12} strokeWidth={4} />
+          </button>
+        </div>
+      </div>
+
+      {/* ── DESKTOP FULL VERSION (Hidden on Mobile) ── */}
+      <div className="hidden sm:flex flex-col h-full">
+        {/* HEADER (Peach Theme) */}
+        <div className={`pt-3 px-3 pb-1 ${theme.headerBg} relative border-b border-slate-50`}>
+          <div className="flex justify-between items-start relative z-10">
+            <div className="relative group/logo">
+              <div className="absolute -inset-1 rounded-full blur-2xl opacity-30 group-hover/logo:opacity-50 transition-opacity duration-700 bg-orange-400"></div>
+              <div className="w-10 h-10 rounded-full bg-white shadow-xl border-2 border-white flex items-center justify-center overflow-hidden transform group-hover/logo:scale-110 group-hover/logo:rotate-3 transition-all duration-500 relative z-20">
+                <div className="absolute inset-0 opacity-10 bg-gradient-to-tr from-orange-400 to-transparent"></div>
+                <img
+                  src={cardImage}
+                  alt="Category"
+                  onError={handleImageError}
+                  className="w-full h-full object-contain p-2 relative z-10"
+                />
+              </div>
             </div>
+          </div>
+          <div className="mt-2.5">
+            <span className={`px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest ${theme.pillBg} ${theme.pillText}`}>
+              Grand Test Series
+            </span>
           </div>
         </div>
 
-        {/* Label */}
-        <div className="mt-2.5">
-          <span className={`px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest ${theme.pillBg} ${theme.pillText}`}>
-            Grand Test Series
-          </span>
+        <div className="p-3 flex-grow flex flex-col">
+          <h3 className={`text-[13px] font-black text-slate-800 leading-tight mb-1.5 ${theme.hoverText} transition-colors line-clamp-2 min-h-[2rem] tracking-tight uppercase`}>
+            {test.title}
+          </h3>
+          <div className={`flex items-center gap-2 mb-3 ${theme.accentText} opacity-80`}>
+            <BookOpen size={11} strokeWidth={3} />
+            <span className="text-[9px] font-black uppercase tracking-[0.1em]">
+              {test.languages && test.languages.length > 0 ? test.languages.join(", ") : "ENGLISH"}
+            </span>
+          </div>
+
+          <div className="space-y-1.5 mb-1.5">
+             <div className="flex items-center justify-between group/item">
+                 <div className="flex items-center gap-2">
+                    <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
+                       <Clock size={10} className={theme.accentText} />
+                    </div>
+                    <span className="text-[9px] font-black tracking-widest text-slate-500 md:block hidden">DURATION</span>
+                    <span className="text-[9px] font-black tracking-widest text-slate-500 block md:hidden">TIME</span>
+                 </div>
+                 <span className="text-[10px] font-black text-slate-800 uppercase md:block hidden">{test.durationMinutes || 0} MINUTES</span>
+                 <span className="text-[10px] font-black text-slate-800 uppercase block md:hidden">{test.durationMinutes || 0} MIN</span>
+              </div>
+             <div className="flex items-center justify-between group/item">
+                 <div className="flex items-center gap-2">
+                    <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
+                       <FileText size={10} className={theme.accentText} />
+                    </div>
+                    <span className="text-[9px] font-black tracking-widest text-slate-500 md:block hidden">TOTAL QUESTIONS</span>
+                    <span className="text-[9px] font-black tracking-widest text-slate-500 block md:hidden">QUESTIONS</span>
+                 </div>
+                 <span className="text-[10px] font-black text-slate-800 uppercase md:block hidden">{test.totalQuestions || 0} QUESTIONS</span>
+                 <span className="text-[10px] font-black text-slate-800 uppercase block md:hidden">{test.totalQuestions || 0} Qs</span>
+              </div>
+             <div className="flex items-center justify-between group/item">
+                 <div className="flex items-center gap-2">
+                    <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
+                       <Trophy size={10} className={theme.accentText} />
+                    </div>
+                    <span className="text-[9px] font-black tracking-widest text-slate-500 md:block hidden">TOTAL MARKS</span>
+                    <span className="text-[9px] font-black tracking-widest text-slate-500 block md:hidden">MARKS</span>
+                 </div>
+                 <span className="text-[10px] font-black text-slate-800 uppercase md:block hidden">{test.totalMarks || 0} MARKS</span>
+                 <span className="text-[10px] font-black text-slate-800 uppercase block md:hidden">{test.totalMarks || 0} Pts</span>
+              </div>
+             <div className="pt-1.5 border-t border-slate-50 flex items-center justify-between group/item">
+                 <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-md bg-orange-50 flex items-center justify-center">
+                       <span className="text-[10px]">💎</span>
+                    </div>
+                    <span className="text-[9px] font-black tracking-widest text-slate-500 md:block hidden">ACCESS TYPE</span>
+                    <span className="text-[9px] font-black tracking-widest text-slate-500 block md:hidden">ACCESS</span>
+                 </div>
+                 <span className={`text-[10px] font-black ${test.isFree ? 'text-emerald-600' : 'text-slate-800'} md:block hidden`}>
+                    {test.isFree ? 'FREE ACCESS' : `Rs. ${effectivePrice}`}
+                 </span>
+                 <span className={`text-[10px] font-black ${test.isFree ? 'text-emerald-600' : 'text-slate-800'} block md:hidden`}>
+                    {test.isFree ? 'FREE' : `Rs. ${effectivePrice}`}
+                 </span>
+              </div>
+          </div>
         </div>
-      </div>
 
-      <div className="p-3 flex-grow flex flex-col">
-        {/* Title */}
-        <h3 className={`text-[13px] font-black text-slate-800 leading-tight mb-1.5 ${theme.hoverText} transition-colors line-clamp-2 min-h-[2rem] tracking-tight uppercase`}>
-          {test.title}
-        </h3>
-
-        {/* Subjects */}
-        <div className={`flex items-center gap-2 mb-3 ${theme.accentText} opacity-80`}>
-          <BookOpen size={11} strokeWidth={3} />
-          <span className="text-[9px] font-black uppercase tracking-[0.1em]">
-            {test.languages && test.languages.length > 0 ? test.languages.join(", ") : "ENGLISH"}
-          </span>
+        <div className="p-3 pt-0 mt-auto">
+          <button
+            onClick={handleAction}
+            className={`w-full py-2 ${theme.buttonBg} ${theme.buttonHover} text-white rounded-lg font-black text-[10px] uppercase tracking-[0.15em] shadow-md shadow-slate-200/50 transition-all active:scale-[0.95] flex items-center justify-center gap-1.5 group/btn whitespace-nowrap`}
+          >
+            {theme.btnLabel}
+            <ChevronRight size={12} strokeWidth={4} className="group-hover/btn:translate-x-0.5 transition-transform" />
+          </button>
         </div>
-
-        {/* Specifications - Vertical List */}
-        <div className="space-y-1.5 mb-1.5">
-           <div className="flex items-center justify-between group/item">
-               <div className="flex items-center gap-2">
-                  <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
-                     <Clock size={10} className={theme.accentText} />
-                  </div>
-                  <span className="text-[9px] font-black tracking-widest text-slate-500 md:block hidden">DURATION</span>
-                  <span className="text-[9px] font-black tracking-widest text-slate-500 block md:hidden">TIME</span>
-               </div>
-               <span className="text-[10px] font-black text-slate-800 uppercase md:block hidden">{test.durationMinutes || 0} MINUTES</span>
-               <span className="text-[10px] font-black text-slate-800 uppercase block md:hidden">{test.durationMinutes || 0} MIN</span>
-            </div>
-
-           <div className="flex items-center justify-between group/item">
-               <div className="flex items-center gap-2">
-                  <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
-                     <FileText size={10} className={theme.accentText} />
-                  </div>
-                  <span className="text-[9px] font-black tracking-widest text-slate-500 md:block hidden">TOTAL QUESTIONS</span>
-                  <span className="text-[9px] font-black tracking-widest text-slate-500 block md:hidden">QUESTIONS</span>
-               </div>
-               <span className="text-[10px] font-black text-slate-800 uppercase md:block hidden">{test.totalQuestions || 0} QUESTIONS</span>
-               <span className="text-[10px] font-black text-slate-800 uppercase block md:hidden">{test.totalQuestions || 0} Qs</span>
-            </div>
-
-           <div className="flex items-center justify-between group/item">
-               <div className="flex items-center gap-2">
-                  <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
-                     <Trophy size={10} className={theme.accentText} />
-                  </div>
-                  <span className="text-[9px] font-black tracking-widest text-slate-500 md:block hidden">TOTAL MARKS</span>
-                  <span className="text-[9px] font-black tracking-widest text-slate-500 block md:hidden">MARKS</span>
-               </div>
-               <span className="text-[10px] font-black text-slate-800 uppercase md:block hidden">{test.totalMarks || 0} MARKS</span>
-               <span className="text-[10px] font-black text-slate-800 uppercase block md:hidden">{test.totalMarks || 0} Pts</span>
-            </div>
-
-           <div className="pt-1.5 border-t border-slate-50 flex items-center justify-between group/item">
-               <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-md bg-orange-50 flex items-center justify-center">
-                     <span className="text-[10px]">💎</span>
-                  </div>
-                  <span className="text-[9px] font-black tracking-widest text-slate-500 md:block hidden">ACCESS TYPE</span>
-                  <span className="text-[9px] font-black tracking-widest text-slate-500 block md:hidden">ACCESS</span>
-               </div>
-               <span className={`text-[10px] font-black ${test.isFree ? 'text-emerald-600' : 'text-slate-800'} md:block hidden`}>
-                  {test.isFree ? 'FREE ACCESS' : `Rs. ${effectivePrice}`}
-               </span>
-               <span className={`text-[10px] font-black ${test.isFree ? 'text-emerald-600' : 'text-slate-800'} block md:hidden`}>
-                  {test.isFree ? 'FREE' : `Rs. ${effectivePrice}`}
-               </span>
-            </div>
-        </div>
-      </div>
-
-      {/* ── FOOTER / ACTION ── */}
-      <div className="p-3 pt-0 mt-auto">
-        <button
-          onClick={handleAction}
-          className={`w-full py-2 ${theme.buttonBg} ${theme.buttonHover} text-white rounded-lg font-black text-[10px] uppercase tracking-[0.15em] shadow-md shadow-slate-200/50 transition-all active:scale-[0.95] flex items-center justify-center gap-1.5 group/btn whitespace-nowrap`}
-        >
-          <span className="hidden sm:inline">{theme.btnLabel}</span>
-          <span className="sm:hidden">VIEW TEST</span>
-          <ChevronRight 
-            size={12} 
-            strokeWidth={4}
-            className="group-hover/btn:translate-x-0.5 transition-transform" 
-          />
-        </button>
       </div>
     </motion.div>
   );
