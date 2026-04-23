@@ -10,16 +10,15 @@ import {
 import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import heroBanner from "../../assets/home-banner.svg";
-import slider1 from "../../assets/slider1.jpeg";
-import slider2 from "../../assets/slider2.jpeg";
-import slider3 from "../../assets/slider3.jpeg";
+import carousel1 from "../../assets/carousel1.png";
+import carousel2 from "../../assets/carousel 2.png";
 
 const HeroSection = () => {
   const navigate = useNavigate();
   const { userData } = useSelector((state) => state.user);
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const slides = [slider1, slider2, slider3];
+  const slides = [carousel1, carousel2];
 
   useEffect(() => {
     const timer = setInterval(() => {
