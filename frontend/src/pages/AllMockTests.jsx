@@ -1,7 +1,10 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { ChevronRight, Search, ArrowLeft } from "lucide-react";
-import { fetchPublicMockTests, resetPublicFilters } from "../redux/studentSlice";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { ChevronRight, Search, ArrowLeft, Loader2 } from "lucide-react";
+import { fetchPublicMockTests, resetPublicFilters, fetchPublicSubscriptions } from "../redux/studentSlice";
+import { fetchMyProfile } from "../redux/userSlice";
+import SubscriptionPassBanner from "../components/student/SubscriptionPassBanner";
 import { fetchCategories } from "../redux/categorySlice";
 import { getImageUrl, handleImageError } from "../utils/imageHelper";
 import MockTestCard from "../components/MockTestCard";
@@ -13,28 +16,39 @@ const normalizeSub = (s) => (s || "General").toString().toLowerCase().replace(/\
 
 export default function AllMockTests({ overrideType }) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const { publicMocktests, publicStatus } = useSelector((s) => s.students);
+  const { publicMocktests, publicStatus, publicSubscriptions } = useSelector((s) => s.students);
   const { items: categories, loading: catLoading } = useSelector((s) => s.category);
   const { userData } = useSelector((s) => s.user);
 
-  const [selectedCatId, setSelectedCatId] = useState(null);
-  const [selectedSub,   setSelectedSub]   = useState(null);
-  const [stage,         setStage]         = useState(STAGES.SUBCATEGORY);
+  // Derive state from URL params
+  const selectedCatId = searchParams.get("category");
+  const selectedSub   = searchParams.get("sub");
+  const stage         = selectedSub ? STAGES.TESTS : STAGES.SUBCATEGORY;
+
   const [search,        setSearch]        = useState("");
+  const [isSyncing,     setIsSyncing]     = useState(false);
 
   useEffect(() => {
     dispatch(fetchCategories());
     dispatch(resetPublicFilters());
     dispatch(fetchPublicMockTests(""));
+    dispatch(fetchPublicSubscriptions());
+
+    // Sync profile on load to handle recent purchases
+    if (userData) {
+      dispatch(fetchMyProfile());
+    }
   }, [dispatch]);
 
-  // Auto-select first category
+  // Auto-select first category if none in URL
   useEffect(() => {
     if (categories.length && !selectedCatId) {
-      setSelectedCatId(categories[0]._id);
+      setSearchParams({ category: categories[0]._id }, { replace: true });
     }
-  }, [categories]);
+  }, [categories, selectedCatId, setSearchParams]);
 
   // Subscribed category IDs
   const subscribedCatIds = useMemo(() => {
@@ -83,21 +97,32 @@ export default function AllMockTests({ overrideType }) {
   }, [testsInCategory, selectedSub, search]);
 
   const selectedCat  = categories.find((c) => c._id === selectedCatId);
+
+  // Find a subscription plan that covers this category
+  const activePlanForCategory = useMemo(() => {
+    if (!publicSubscriptions || !selectedCatId) return null;
+    return publicSubscriptions.find(plan => 
+      plan.categories?.some(cat => String(cat._id || cat) === String(selectedCatId))
+    );
+  }, [publicSubscriptions, selectedCatId]);
+
   const isSubscribed = subscribedCatIds.has(String(selectedCatId));
 
   // Total test count across all categories
   const totalTests = publicMocktests?.length || 0;
 
   const handleCatClick = (catId) => {
-    setSelectedCatId(catId);
-    setSelectedSub(null);
-    setStage(STAGES.SUBCATEGORY);
+    setSearchParams({ category: catId });
     setSearch("");
   };
 
   const handleSubClick = (subName) => {
-    setSelectedSub(subName);
-    setStage(STAGES.TESTS);
+    setSearchParams({ category: selectedCatId || "", sub: subName });
+    setSearch("");
+  };
+
+  const handleBackToSub = () => {
+    setSearchParams({ category: selectedCatId || "" });
     setSearch("");
   };
 
@@ -178,14 +203,26 @@ export default function AllMockTests({ overrideType }) {
         {/* RIGHT: Content */}
         <div className="flex-1 overflow-y-auto bg-white">
 
+            {/* ── SUBSCRIPTION BANNER ── */}
+            {stage === STAGES.SUBCATEGORY && activePlanForCategory && (
+               <div className="px-6 pt-6">
+                 <SubscriptionPassBanner 
+                    pass={activePlanForCategory} 
+                    categoryName={selectedCat?.name} 
+                    isSubscribed={isSubscribed}
+                    selectedCatId={selectedCatId}
+                 />
+               </div>
+            )}
+
             {/* ── SUBCATEGORY GRID ── */}
             {stage === STAGES.SUBCATEGORY && (
               <div className="p-6">
-                {isSubscribed && (
+                {/* {isSubscribed && (
                   <div className="mb-4 flex items-center gap-2 text-sm font-bold text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-4 py-2 w-fit">
                     👑 You have a subscription pass for this category
                   </div>
-                )}
+                )} */}
 
                 {publicStatus === "loading" ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -248,7 +285,7 @@ export default function AllMockTests({ overrideType }) {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                   <div className="flex items-center gap-3">
                     <button
-                      onClick={() => { setStage(STAGES.SUBCATEGORY); setSelectedSub(null); setSearch(""); }}
+                      onClick={handleBackToSub}
                       className="flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
                     >
                       <ArrowLeft size={16} /> {selectedCat?.name}

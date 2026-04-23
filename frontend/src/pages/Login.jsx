@@ -83,6 +83,12 @@ const Login = () => {
         avatar: user.photoURL,
       };
       const res = await api.post("/api/auth/google", googleData);
+      
+      // Save token for the axios interceptor
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
+      
       dispatch(setUserData(res.data));
       toast.success("Signed in successfully!");
       
@@ -106,6 +112,11 @@ const Login = () => {
       const result = await api.post("/api/auth/login", { email, password });
       
       const role = result.data.role;
+
+      // Save token for the axios interceptor
+      if (result.data.token) {
+        localStorage.setItem("token", result.data.token);
+      }
 
       // Block institutions from student login
       if (role === 'institution') {
@@ -144,6 +155,14 @@ const Login = () => {
     try {
       setLoading(true);
       const result = await api.post("/api/auth/verify-otp", { email, otp });
+      
+      // Save token for the axios interceptor
+      if (result.data.token) {
+        localStorage.setItem("token", result.data.token);
+      } else if (result.data.user?.token) {
+        localStorage.setItem("token", result.data.user.token);
+      }
+
       dispatch(setUserData(result.data.user));
       toast.success("Email verified!");
       navigate("/");

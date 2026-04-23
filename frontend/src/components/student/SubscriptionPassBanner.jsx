@@ -6,7 +6,7 @@ import api from "../../api/axios";
 import { Crown, CheckCircle2, ArrowRight } from "lucide-react";
 import { fetchStudentProfile } from "../../redux/studentSlice"; 
 
-export default function SubscriptionPassBanner({ pass, categoryName }) {
+export default function SubscriptionPassBanner({ pass, categoryName, isSubscribed, selectedCatId }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const { userData } = useSelector((state) => state.user);
     const dispatch = useDispatch();
@@ -14,8 +14,8 @@ export default function SubscriptionPassBanner({ pass, categoryName }) {
 
     if (!pass) return null;
 
-    // Check if user already has this subscription active
-    const hasActivePass = userData?.activeSubscriptions?.some(
+    // Check if user already has this subscription active or category covered
+    const hasActivePass = isSubscribed || userData?.activeSubscriptions?.some(
         (sub) => {
             const subPlanId = sub.planId?._id?.toString() || sub.planId?.toString();
             const passId = pass._id?.toString();
@@ -73,7 +73,7 @@ export default function SubscriptionPassBanner({ pass, categoryName }) {
                 if (verifyData.success) {
                     dispatch(fetchStudentProfile());
                     toast.success("🎉 Pass Unlocked! Welcome to Premium!");
-                    setTimeout(() => window.location.reload(), 1500);
+                    setTimeout(() => navigate("/student-dashboard?tab=my-tests"), 1500);
                 } else {
                     toast.error("Failed to activate pass. Try again.");
                 }
@@ -107,7 +107,7 @@ export default function SubscriptionPassBanner({ pass, categoryName }) {
                         if (verifyData.success) {
                             dispatch(fetchStudentProfile());
                             toast.success("🎉 Pass Active! Enjoy unlimited access!");
-                            setTimeout(() => window.location.reload(), 1500);
+                            setTimeout(() => navigate("/student-dashboard?tab=my-tests"), 1500);
                         } else {
                             toast.error("Payment verification failed. Contact support.");
                         }

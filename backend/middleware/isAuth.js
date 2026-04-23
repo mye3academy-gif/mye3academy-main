@@ -6,7 +6,16 @@ import User from "../models/Usermodel.js";
  */
 export const isAuth = async (req, res, next) => {
   try {
-    const { token } = req.cookies;
+    // 1. Try to get token from Authorization header first (Bearer token)
+    let token = null;
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+
+    // 2. Fallback to cookies if not in headers
+    if (!token && req.cookies) {
+      token = req.cookies.token;
+    }
 
     if (!token) {
       return res
@@ -41,9 +50,12 @@ export const isAuth = async (req, res, next) => {
  * Middleware to restrict access to Admin only
  */
 export const isAdmin = (req, res, next) => {
-  if (req.user && req.user.role === "admin") {
+  const userRole = req.user?.role?.toLowerCase()?.trim() || "";
+  
+  if (req.user && userRole === "admin") {
     next();
   } else {
+    console.error(`🔴 ACCESS_FORBIDDEN: User ${req.user?._id} has role: "${req.user?.role}"`);
     return res.status(403).json({
       success: false,
       message: "Forbidden. Admin access required.",

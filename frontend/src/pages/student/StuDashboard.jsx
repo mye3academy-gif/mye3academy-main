@@ -106,7 +106,6 @@ export default function StuDashboard() {
         <div className="mt-6">
           {activeTab === "overview" && <DashboardOverview setActiveTab={setActiveTab} />}
           {activeTab === "my-tests" && <MyTests setActiveTab={setActiveTab} />}
-          {activeTab === "explore" && <AllMockTests isEmbedded={true} />}
           {activeTab === "performance" && <PerformanceHistory initialFilter="all" />}
           {activeTab === "settings" && <ProfileSettings />}
           {activeTab === "doubts" && <StudentDoubts />}

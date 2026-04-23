@@ -300,7 +300,8 @@ export const getme = async (req, res) => {
     const user = await User.findById(req.user.id)
       .select("-password")
       .populate("purchasedTests")
-      .populate("attempts");
+      .populate("attempts")
+      .populate("activeSubscriptions.planId");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

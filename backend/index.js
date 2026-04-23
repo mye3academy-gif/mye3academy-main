@@ -92,7 +92,6 @@ app.use("/api/v1/dashboard", dashboardRoute);
 app.use("/api/admin/users", adminUserRoutes);
 app.use("/api/admin/mocktests", mocktestAdminRoutes);
 app.use("/api/admin/doubts", doubtAdminRoutes);
-app.use("/api/admin/categories", publicRoutes);
 app.use("/api/admin/notifications", adminNotificationRoutes);
 app.use("/api/admin", adminRoutes);   
 

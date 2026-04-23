@@ -87,28 +87,28 @@ export const getMyPurchasedTests = async (req, res) => {
       // Unlock entire categories
       for (const catId of (plan.categories || [])) {
         const [mocks, grand] = await Promise.all([
-          MockTest.find({ category: catId, isPublished: true }).select(selectFields).populate("category", "name slug").lean(),
-          GrandTest.find({ category: catId, isPublished: true }).select(selectFields).populate("category", "name slug").lean(),
+          MockTest.find({ category: catId }).select(selectFields).populate("category", "name slug").lean(),
+          GrandTest.find({ category: catId }).select(selectFields).populate("category", "name slug").lean(),
         ]);
-        mocks.forEach(t => subscriptionTests.push({ ...t, isGrandTest: false, _fromSubscription: true, _planName: plan.name }));
-        grand.forEach(t => subscriptionTests.push({ ...t, isGrandTest: true, _fromSubscription: true, _planName: plan.name }));
+        mocks.forEach(t => subscriptionTests.push({ ...t, isGrandTest: false, _fromSubscription: true, _planName: plan.name, _extraAttempts: plan.extraAttempts || 0 }));
+        grand.forEach(t => subscriptionTests.push({ ...t, isGrandTest: true, _fromSubscription: true, _planName: plan.name, _extraAttempts: plan.extraAttempts || 0 }));
       }
     }
 
-    // ── 3. Merge + Deduplicate ──
-    const directIds = new Set(directTests.map(t => t._id.toString()));
-    const uniqueSubTests = subscriptionTests.filter(t => !directIds.has(t._id.toString()));
-    
-    // Deduplicate subscription tests themselves
-    const seenSubIds = new Set();
-    const dedupedSubTests = uniqueSubTests.filter(t => {
+    // 3. Merge + Deduplicate
+    // Collect all IDs from subscription tests first
+    const subIds = new Set();
+    const dedupedSubTests = subscriptionTests.filter(t => {
       const id = t._id.toString();
-      if (seenSubIds.has(id)) return false;
-      seenSubIds.add(id);
+      if (subIds.has(id)) return false;
+      subIds.add(id);
       return true;
     });
 
-    const validTests = [...directTests, ...dedupedSubTests];
+    // Only include direct tests if they are NOT already covered by a subscription
+    const remainingDirectTests = directTests.filter(t => !subIds.has(t._id.toString()));
+
+    const validTests = [...dedupedSubTests, ...remainingDirectTests];
 
     // ── 4. Fetch all attempts ──
     const attempts = await Attempt.find({ studentId: userId }).select("status score createdAt updatedAt mocktestId");
@@ -150,10 +150,13 @@ export const getMyPurchasedTests = async (req, res) => {
         const latestAttempt = attemptMap[testIdStr];
         const attemptsMade = countMap[testIdStr] || 0;
         
-        // Include bonus attempts
+        // Include bonus attempts and subscription attempts
         const bonusObj = (user.rePurchasedTests || []).find(r => r.testId?.toString() === testIdStr);
         const bonusAttempts = bonusObj ? bonusObj.bonusAttempts : 0;
-        const maxAttempts = (test.maxAttempts || 1) + bonusAttempts;
+        const subExtra = (test._fromSubscription && test._extraAttempts !== -1) ? test._extraAttempts : 0;
+        
+        let maxAttempts = (test.maxAttempts || 1) + bonusAttempts + subExtra;
+        if (test._fromSubscription && test._extraAttempts === -1) maxAttempts = Infinity;
 
         let status = 'not_started';
         let progress = 0;
@@ -167,16 +170,14 @@ export const getMyPurchasedTests = async (req, res) => {
           if (status === 'completed') progress = 100;
         }
 
-        const isFree = test.isFree === true || test.price <= 0 || test._fromSubscription;
-        const hasUnusedOrder = isFree || orderMap.has(testIdStr);
+        const isFreeBase = test.isFree === true || test.price <= 0;
+        const hasUnusedOrder = isFreeBase || orderMap.has(testIdStr);
 
         let isPurchaseRequired = false;
 
         if (attemptsMade >= maxAttempts) {
           if (hasUnusedOrder && !test._fromSubscription) {
              status = 'ready_to_retry';
-          } else if (test._fromSubscription) {
-             status = 'ready_to_retry'; // Unlimited via subscription!
           } else {
             status = 'completed';
             isPurchaseRequired = true;
@@ -248,7 +249,8 @@ export const getMyMockTestById = async (req, res) => {
         const latestAttempt = attempts.sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt))[0];
         const attemptsMade = attempts.length;
 
-        const maxAttempts = (test.maxAttempts || 1) + bonusAttempts;
+        // Initial max attempts (will be refined below with subscription logic)
+        let maxAttempts = (test.maxAttempts || 1) + bonusAttempts;
         let status = 'not_started';
         let progress = 0;
         let latestAttemptId = null;
@@ -261,8 +263,11 @@ export const getMyMockTestById = async (req, res) => {
             if (status === 'completed') progress = 100;
         }
 
-        // Check Subscription Access
+        // Check Subscription Access and capture extra attempts
         let hasSubscriptionAccess = false;
+        let subExtra = 0;
+        let isUnlimited = false;
+
         const now = new Date();
         const activeSubs = (user.activeSubscriptions || []).filter(sub => sub.planId && new Date(sub.expiresAt) > now);
         
@@ -272,24 +277,26 @@ export const getMyMockTestById = async (req, res) => {
             const catMatch = plan.categories?.some(cId => cId.toString() === test.category?._id?.toString());
             if (catMatch) {
                 hasSubscriptionAccess = true;
-                break;
+                if (plan.extraAttempts === -1) isUnlimited = true;
+                else subExtra = Math.max(subExtra, plan.extraAttempts || 0);
             }
         }
 
-        const isFree = test.isFree === true || test.price <= 0 || hasSubscriptionAccess;
-        const unusedOrder = isFree ? true : await Order.findOne({
+        maxAttempts = isUnlimited ? Infinity : ((test.maxAttempts || 1) + bonusAttempts + subExtra);
+        const isFreeBase = test.isFree === true || test.price <= 0;
+        const unusedOrder = isFreeBase ? true : await Order.findOne({
             user: userId,
             "items.itemId": id,
             status: "successful",
             attemptUsed: false,
         }).lean();
 
-        const isPurchaseRequired = (attemptsMade >= maxAttempts) && !unusedOrder;
+        const isPurchaseRequired = (attemptsMade >= maxAttempts);
         
         if (attemptsMade < maxAttempts && status === 'completed') {
             status = 'ready_to_retry';
-        } else if (attemptsMade >= maxAttempts && (unusedOrder || hasSubscriptionAccess)) {
-            status = 'ready_to_retry';
+        } else if (attemptsMade >= maxAttempts) {
+            status = 'completed'; // Force completed status if limit reached
         }
 
         res.status(200).json({

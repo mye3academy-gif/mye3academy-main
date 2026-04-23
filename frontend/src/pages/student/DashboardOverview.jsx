@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux'; 
 import { fetchGlobalLeaderboard, fetchPerformanceHistory, fetchPublicMockTests, fetchUpcomingExams } from '../../redux/studentSlice'; 
 import { fetchMyMockTests } from '../../redux/userSlice';
@@ -24,6 +25,7 @@ import { getImageUrl } from '../../utils/imageHelper';
 
 const DashboardOverview = ({ setActiveTab }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   
   const { userData, myMockTests, myMockTestsStatus } = useSelector((state) => state.user);
   const { 
@@ -367,7 +369,7 @@ const DashboardOverview = ({ setActiveTab }) => {
                   </p>
 
                   <button 
-                     onClick={() => setActiveTab('explore')}
+                     onClick={() => navigate('/all-tests')}
                      className="group/btn inline-flex items-center gap-2 sm:gap-3 bg-white text-[#122b5e] px-6 sm:px-8 py-4 sm:py-5 rounded-none font-black uppercase tracking-widest text-[10px] sm:text-xs hover:bg-blue-50 transition-all transform active:scale-95 shadow-xl shadow-blue-950/20 whitespace-nowrap"
                   >
                      Go to Mock Tests 
