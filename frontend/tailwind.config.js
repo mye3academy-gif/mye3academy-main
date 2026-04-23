@@ -4,8 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Poppins'],
-        poppins: ['Poppins'],
+        sans: ['Jost'],
+        jost: ['Jost'],
       },
       colors: {
         brand: {

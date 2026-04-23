@@ -103,33 +103,20 @@ const MockTestCard = ({ test, isEmbedded = false, index = 0 }) => {
       className={`flex flex-col bg-white border border-slate-100 border-t-4 ${isGrand ? 'border-t-orange-400' : 'border-t-emerald-500'} rounded-lg shadow-sm hover:shadow-2xl hover:${theme.shadow}/60 transition-all duration-500 overflow-hidden cursor-pointer group h-full`}
     >
       {/* ── MOBILE COMPACT VERSION ── */}
-      <div className="sm:hidden p-2 flex flex-row gap-2.5 items-center">
-        {/* Compact Image */}
-        <div className="w-12 h-12 shrink-0 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden">
-          <img
-            src={cardImage}
-            alt="Thumbnail"
-            onError={handleImageError}
-            className="w-8 h-8 object-contain"
-          />
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <h3 className="text-[11px] font-black text-slate-800 leading-tight mb-0.5 truncate uppercase tracking-tighter">
-            {test.title}
-          </h3>
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">{subcategoryText}</span>
-            <span className="w-1 h-1 rounded-full bg-slate-200"></span>
-            <span className="text-[7px] font-black text-emerald-600 uppercase tracking-widest">{test.isFree ? 'FREE' : `Rs.${effectivePrice}`}</span>
-          </div>
-          
+      <div className="sm:hidden p-4 flex flex-col flex-grow">
+        <h3 className="text-[14px] font-black text-slate-800 leading-tight mb-1 tracking-tight uppercase line-clamp-2">
+          {test.title}
+        </h3>
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">
+          {languagesText}
+        </p>
+        <div className="mt-auto">
           <button
             onClick={handleAction}
-            className={`w-full py-1.5 ${theme.buttonBg} text-white rounded-md font-black text-[8px] uppercase tracking-widest flex items-center justify-center gap-1`}
+            className={`w-full py-2.5 ${theme.buttonBg} text-white rounded-lg font-black text-[10px] uppercase tracking-[0.15em] flex items-center justify-center gap-1.5`}
           >
             VIEW TEST
-            <ChevronRight size={8} strokeWidth={4} />
+            <ChevronRight size={12} strokeWidth={4} />
           </button>
         </div>
       </div>
