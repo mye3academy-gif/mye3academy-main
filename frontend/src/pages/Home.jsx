@@ -192,7 +192,7 @@ const CTASection = ({ onSignup }) => (
     <div className="max-w-6xl mx-auto rounded-[32px] overflow-hidden relative shadow-2xl border border-slate-100">
       {/* Vibrant Gradient like Jumbo Xerox Bulk Section */}
       <div className="absolute inset-0 bg-gradient-to-r from-orange-500 via-red-500 to-pink-600"></div>
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+      {/* Abstract Background Elements */}
 
       <div className="relative py-12 px-8 text-center text-white z-10">
         <h2 className="text-2xl md:text-4xl font-black mb-4 tracking-tighter uppercase whitespace-nowrap overflow-hidden text-ellipsis">

@@ -1,4 +1,3 @@
-import React, { useState, useMemo, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import api from "../../api/axios";
@@ -155,7 +154,7 @@ const InstiSidebar = () => {
     <>
       <div className="md:hidden fixed top-0 left-0 w-full p-4 bg-[#a332ff] z-50 flex justify-between border-b border-white/10 shadow-lg">
         <Link to="/">
-          <img 
+          <img
             src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`}
             alt="Mye3 Logo"
             className="h-6 w-auto object-contain brightness-0 invert"
@@ -179,7 +178,7 @@ const InstiSidebar = () => {
       >
         <div className="px-6 py-6 border-b border-white/10">
           <Link to="/">
-            <img 
+            <img
               src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`}
               alt="Mye3 Logo"
               className="h-8 w-auto object-contain brightness-0 invert mb-1"

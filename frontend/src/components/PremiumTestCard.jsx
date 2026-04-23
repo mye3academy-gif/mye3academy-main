@@ -1,46 +1,36 @@
 import React, { useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Clock, BookOpen, Unlock, Play, FileText, Trophy, CheckCircle2, ChevronRight } from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
-
-import { fetchPublicTestById } from "../redux/mockTestSlice";
 import { getImageUrl, handleImageError } from "../utils/imageHelper";
-
+import { Clock, BookOpen, FileText, Trophy, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 
-const PremiumTestCard = ({ test, index = 0 }) => {
-  const dispatch = useDispatch();
-  const navigate  = useNavigate();
+const PremiumTestCard = ({ test, isEmbedded = false, index = 0 }) => {
+  const navigate = useNavigate();
+  const { userData, myMockTests } = useSelector((state) => state.user);
 
-  const { userData, myMockTests }  = useSelector((s) => s.user);
-
-  const purchasedTests = userData?.purchasedTests || userData?.enrolledMockTests || [];
-  const isGrand        = test.isGrandTest === true;
-  const isFree         = test.isFree === true;
-  
-  const hasPurchased   = purchasedTests.some((i) => String(i._id || i) === String(test._id)) || 
-                       myMockTests?.some((t) => String(t._id) === String(test._id));
+  const isPurchased =
+    userData?.purchasedTests?.some(
+      (id) => String(id._id || id) === String(test._id)
+    ) || myMockTests?.some((t) => String(t._id) === String(test._id));
 
   const effectivePrice =
     test.discountPrice > 0 && Number(test.discountPrice) < Number(test.price)
       ? Number(test.discountPrice)
-      : Number(test.price);
+      : Number(test.price || 0);
 
-  const canStart = isFree || effectivePrice <= 0 || hasPurchased;
+  const canStart = test.isFree === true || String(test.isFree) === "true" || effectivePrice <= 0 || isPurchased;
 
   const navigateToTest = (id) => {
-    const idStr = String(id);
-    console.log("PremiumTestCard: Navigating to test", { id: idStr, canStart, hasPurchased, userData: !!userData });
     if (!userData) {
-      toast.error("Please login first!");
-      navigate("/login");
-      return;
+      toast.error("Please login to continue");
+      return navigate("/login");
     }
     if (canStart && userData?.role === "student") {
-      navigate(`/student/instructions/${idStr}`);
+      navigate(`/student/instructions/${String(id)}`);
     } else {
-      navigate(`/all-tests/${idStr}`);
+      navigate(`/all-tests/${String(id)}`);
     }
   };
 
@@ -49,22 +39,22 @@ const PremiumTestCard = ({ test, index = 0 }) => {
     navigateToTest(test._id);
   };
 
-  const cardImage = test.thumbnail 
+  const cardImage = test.thumbnail
     ? getImageUrl(test.thumbnail)
-    : (test.category && (test.category.icon || test.category.image)) 
-      ? getImageUrl(test.category.icon || test.category.image) 
+    : (test.category && (test.category.icon || test.category.image))
+      ? getImageUrl(test.category.icon || test.category.image)
       : `${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`;
 
-  const enrolledCount = useMemo(() => {
-    const total = (test.baseEnrolledCount || 0) + (test.attempts?.length || 0);
-    if (total >= 1000) {
-      const num = total / 1000;
-      return `${num >= 10 ? Math.round(num) : num.toFixed(1)}k`;
-    }
-    return total;
-  }, [test.baseEnrolledCount, test.attempts]);
+  const languagesText = useMemo(() => {
+    if (!test.languages || test.languages.length === 0) return "English";
+    return test.languages.join(", ");
+  }, [test.languages]);
 
-  // Theme (Premium Grand)
+  const subcategoryText = test.subcategory || "Mock Test";
+
+  const isGrand = test.isGrandTest === true;
+
+  // Theme Definitions (Orange for Premium/Grand)
   const theme = {
     headerBg: "bg-gradient-to-br from-orange-200 via-orange-100/60 to-white",
     pillBg: "bg-orange-200",
@@ -82,19 +72,18 @@ const PremiumTestCard = ({ test, index = 0 }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.05 }}
-      whileHover={{ y: -8 }}
+      whileHover={{ y: -6 }}
       onClick={() => navigateToTest(test._id)}
-      className={`flex flex-col bg-white border border-slate-100 border-t-4 border-t-orange-400 rounded-lg shadow-sm hover:shadow-2xl hover:${theme.shadow}/60 transition-all duration-500 overflow-hidden cursor-pointer group h-full`}
+      className={`flex flex-col bg-white border border-slate-100 border-t-4 border-t-orange-500 rounded-lg shadow-sm hover:shadow-2xl hover:${theme.shadow}/60 transition-all duration-500 overflow-hidden cursor-pointer group h-full`}
     >
-      {/* ── MOBILE COMPACT VERSION (Hidden on Desktop) ── */}
+      {/* ── MOBILE COMPACT VERSION (Image 1 Style) ── */}
       <div className="sm:hidden p-4 flex flex-col flex-grow">
-        <h3 className={`text-[14px] font-black text-slate-800 leading-tight mb-1 transition-colors tracking-tight uppercase line-clamp-2`}>
+        <h3 className="text-[14px] font-black text-slate-800 leading-tight mb-1 tracking-tight uppercase line-clamp-2">
           {test.title}
         </h3>
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 italic">
-          {test.languages && test.languages.length > 0 ? test.languages.join(", ") : "ENGLISH"}
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">
+          {languagesText}
         </p>
-        
         <div className="mt-auto">
           <button
             onClick={handleAction}
@@ -106,15 +95,14 @@ const PremiumTestCard = ({ test, index = 0 }) => {
         </div>
       </div>
 
-      {/* ── DESKTOP FULL VERSION (Hidden on Mobile) ── */}
+      {/* ── DESKTOP FULL VERSION (Detailed) ── */}
       <div className="hidden sm:flex flex-col h-full">
-        {/* HEADER (Peach Theme) */}
-        <div className={`pt-3 px-3 pb-1 ${theme.headerBg} relative border-b border-slate-50`}>
+        <div className={`pt-3 px-3 pb-1.5 ${theme.headerBg} relative border-b border-slate-50`}>
           <div className="flex justify-between items-start relative z-10">
             <div className="relative group/logo">
-              <div className="absolute -inset-1 rounded-full blur-2xl opacity-30 group-hover/logo:opacity-50 transition-opacity duration-700 bg-orange-400"></div>
+              <div className={`absolute -inset-1 rounded-full blur-2xl opacity-30 group-hover/logo:opacity-50 transition-opacity duration-700 bg-orange-400`}></div>
               <div className="w-10 h-10 rounded-full bg-white shadow-xl border-2 border-white flex items-center justify-center overflow-hidden transform group-hover/logo:scale-110 group-hover/logo:rotate-3 transition-all duration-500 relative z-20">
-                <div className="absolute inset-0 opacity-10 bg-gradient-to-tr from-orange-400 to-transparent"></div>
+                <div className={`absolute inset-0 opacity-10 bg-gradient-to-tr from-orange-400 to-transparent`}></div>
                 <img
                   src={cardImage}
                   alt="Category"
@@ -131,70 +119,64 @@ const PremiumTestCard = ({ test, index = 0 }) => {
           </div>
         </div>
 
-        <div className="p-3 flex-grow flex flex-col">
-          <h3 className={`text-[13px] font-black text-slate-800 leading-tight mb-1.5 ${theme.hoverText} transition-colors line-clamp-2 min-h-[2rem] tracking-tight uppercase`}>
+        <div className="p-3 flex-grow">
+          <h3 className={`text-[13px] font-black text-slate-800 leading-tight mb-1.5 ${theme.hoverText} transition-colors tracking-tight uppercase line-clamp-2`}>
             {test.title}
           </h3>
-          <div className={`flex items-center gap-2 mb-3 ${theme.accentText} opacity-80`}>
-            <BookOpen size={11} strokeWidth={3} />
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+            {subcategoryText}
+          </p>
+
+          <div className={`flex items-center gap-1.5 mb-3 ${theme.accentText} opacity-80`}>
+            <BookOpen size={10} strokeWidth={3} />
             <span className="text-[9px] font-black uppercase tracking-[0.1em]">
-              {test.languages && test.languages.length > 0 ? test.languages.join(", ") : "ENGLISH"}
+              {languagesText}
             </span>
           </div>
 
           <div className="space-y-1.5 mb-1.5">
-             <div className="flex items-center justify-between group/item">
-                 <div className="flex items-center gap-2">
-                    <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
-                       <Clock size={10} className={theme.accentText} />
-                    </div>
-                    <span className="text-[9px] font-black tracking-widest text-slate-500 md:block hidden">DURATION</span>
-                    <span className="text-[9px] font-black tracking-widest text-slate-500 block md:hidden">TIME</span>
-                 </div>
-                 <span className="text-[10px] font-black text-slate-800 uppercase md:block hidden">{test.durationMinutes || 0} MINUTES</span>
-                 <span className="text-[10px] font-black text-slate-800 uppercase block md:hidden">{test.durationMinutes || 0} MIN</span>
+            <div className="flex items-center justify-between group/item">
+              <div className="flex items-center gap-2">
+                <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
+                  <Clock size={9} className={theme.accentText} />
+                </div>
+                <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Duration</span>
               </div>
-             <div className="flex items-center justify-between group/item">
-                 <div className="flex items-center gap-2">
-                    <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
-                       <FileText size={10} className={theme.accentText} />
-                    </div>
-                    <span className="text-[9px] font-black tracking-widest text-slate-500 md:block hidden">TOTAL QUESTIONS</span>
-                    <span className="text-[9px] font-black tracking-widest text-slate-500 block md:hidden">QUESTIONS</span>
-                 </div>
-                 <span className="text-[10px] font-black text-slate-800 uppercase md:block hidden">{test.totalQuestions || 0} QUESTIONS</span>
-                 <span className="text-[10px] font-black text-slate-800 uppercase block md:hidden">{test.totalQuestions || 0} Qs</span>
+              <span className="text-[10px] font-black text-slate-800 uppercase">{test.durationMinutes || 0} MIN</span>
+            </div>
+            <div className="flex items-center justify-between group/item">
+              <div className="flex items-center gap-2">
+                <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
+                  <FileText size={9} className={theme.accentText} />
+                </div>
+                <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Qs</span>
               </div>
-             <div className="flex items-center justify-between group/item">
-                 <div className="flex items-center gap-2">
-                    <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
-                       <Trophy size={10} className={theme.accentText} />
-                    </div>
-                    <span className="text-[9px] font-black tracking-widest text-slate-500 md:block hidden">TOTAL MARKS</span>
-                    <span className="text-[9px] font-black tracking-widest text-slate-500 block md:hidden">MARKS</span>
-                 </div>
-                 <span className="text-[10px] font-black text-slate-800 uppercase md:block hidden">{test.totalMarks || 0} MARKS</span>
-                 <span className="text-[10px] font-black text-slate-800 uppercase block md:hidden">{test.totalMarks || 0} Pts</span>
+              <span className="text-[10px] font-black text-slate-800 uppercase">{test.totalQuestions || 0}</span>
+            </div>
+            <div className="flex items-center justify-between group/item">
+              <div className="flex items-center gap-2">
+                <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
+                  <Trophy size={9} className={theme.accentText} />
+                </div>
+                <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Marks</span>
               </div>
-             <div className="pt-1.5 border-t border-slate-50 flex items-center justify-between group/item">
-                 <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-md bg-orange-50 flex items-center justify-center">
-                       <span className="text-[10px]">💎</span>
-                    </div>
-                    <span className="text-[9px] font-black tracking-widest text-slate-500 md:block hidden">ACCESS TYPE</span>
-                    <span className="text-[9px] font-black tracking-widest text-slate-500 block md:hidden">ACCESS</span>
-                 </div>
-                 <span className={`text-[10px] font-black ${test.isFree ? 'text-emerald-600' : 'text-slate-800'} md:block hidden`}>
-                    {test.isFree ? 'FREE ACCESS' : `Rs. ${effectivePrice}`}
-                 </span>
-                 <span className={`text-[10px] font-black ${test.isFree ? 'text-emerald-600' : 'text-slate-800'} block md:hidden`}>
-                    {test.isFree ? 'FREE' : `Rs. ${effectivePrice}`}
-                 </span>
+              <span className="text-[10px] font-black text-slate-800 uppercase">{test.totalMarks || 0}</span>
+            </div>
+            <div className="pt-1.5 border-t border-slate-50 flex items-center justify-between group/item">
+              <div className="flex items-center gap-2">
+                <div className={`w-6 h-6 rounded-md bg-orange-50 flex items-center justify-center`}>
+                  <span className="text-[9px]">💎</span>
+                </div>
+                <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Pricing</span>
               </div>
+              <span className={`text-[10px] font-black ${test.isFree ? 'text-emerald-600' : 'text-slate-800'}`}>
+                {test.isFree ? 'FREE' : `Rs.${effectivePrice}`}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="p-3 pt-0 mt-auto">
+        <div className="px-3 pb-3 mt-auto">
           <button
             onClick={handleAction}
             className={`w-full py-2 ${theme.buttonBg} ${theme.buttonHover} text-white rounded-lg font-black text-[10px] uppercase tracking-[0.15em] shadow-md shadow-slate-200/50 transition-all active:scale-[0.95] flex items-center justify-center gap-1.5 group/btn whitespace-nowrap`}

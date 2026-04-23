@@ -21,12 +21,9 @@ const UpcomingExamsGallery = ({ data = { upcoming: [], popular: [] }, loading })
       if (isCategory) {
         return navigate(`/all-tests?category=${encodeURIComponent(item.slug)}`);
       }
-
-      // ── LOGIC FOR TESTS ──
       if (!userData) {
         return navigate("/login");
       }
-
       const isPurchased =
         userData?.purchasedTests?.some((pid) => String(pid._id || pid) === idStr) ||
         myMockTests?.some((t) => String(t._id) === idStr);
@@ -35,8 +32,6 @@ const UpcomingExamsGallery = ({ data = { upcoming: [], popular: [] }, loading })
       const isFree = item.isFree === true || String(item.isFree) === "true";
       const canStart = isFree || price <= 0 || isPurchased;
 
-      console.log("UpcomingExamsGallery: Clicked test", { title, id: idStr, isPurchased, canStart });
-
       if (canStart) {
         navigate(`/student/instructions/${idStr}`);
       } else {
@@ -44,42 +39,67 @@ const UpcomingExamsGallery = ({ data = { upcoming: [], popular: [] }, loading })
       }
     };
 
+    const colors = [
+      "bg-emerald-500",
+      "bg-blue-500",
+      "bg-indigo-500",
+      "bg-purple-500",
+      "bg-rose-500",
+      "bg-amber-500"
+    ];
+    const colorClass = colors[Math.abs(String(item._id).charCodeAt(0)) % colors.length];
+
     return (
       <div
         key={item._id}
         onClick={handleClick}
-        className="group flex flex-col items-center text-center gap-2 p-3 bg-white border border-slate-100 border-t-4 border-t-emerald-500 rounded-lg shadow-sm hover:shadow-md hover:border-t-orange-400 transition-all duration-300 cursor-pointer relative md:flex-row md:text-left md:px-5 md:py-3.5 md:gap-4"
+        className="group relative flex flex-col bg-white rounded-[24px] shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden h-full border border-slate-50"
       >
-        {/* Status Badge for "Upcoming" */}
-        {item.isUpcoming && (
-          <span className="absolute -top-1.5 -right-1 px-1.5 py-0.5 bg-orange-500 text-white text-[7px] md:text-[8px] font-black rounded-md tracking-widest uppercase shadow-sm z-10 animate-pulse">
-             Upcoming
-          </span>
-        )}
-        
-        {/* Logo Container */}
-        <div className="w-10 h-10 md:w-12 md:h-12 flex-none rounded-full bg-emerald-50 flex items-center justify-center overflow-hidden shrink-0 border border-emerald-100 group-hover:bg-white group-hover:scale-105 transition-all duration-300">
-          {icon ? (
-            <img
-              src={icon}
-              alt={title}
-              className="w-full h-full object-contain p-1.5 md:p-2"
-              onError={handleImageError}
-            />
-          ) : (
-            <div className="text-sm md:text-lg font-black text-slate-300 uppercase">
-              {title.charAt(0)}
-            </div>
+        {/* Top Color Flood - 40% height */}
+        <div className={`h-16 w-full ${colorClass} relative`}>
+          <div className="absolute inset-0 bg-black/5"></div>
+          {/* Status Badge for "Upcoming" */}
+          {item.isUpcoming && (
+            <span className="absolute top-3 right-3 px-2 py-1 bg-white/20 backdrop-blur-md text-white text-[7px] font-black rounded-full tracking-widest uppercase border border-white/30">
+               Upcoming
+            </span>
           )}
         </div>
 
-        {/* Title */}
-        <span className="flex-1 text-[11px] md:text-[13px] font-black text-slate-700 group-hover:text-indigo-600 transition-colors tracking-tight line-clamp-2 md:line-clamp-1">
-           {title}
-        </span>
+        {/* Bottom Content Area */}
+        <div className="pt-8 px-4 pb-4 flex flex-col flex-grow relative">
+          
+          {/* Floating Icon Container */}
+          <div className="absolute -top-7 left-4 md:left-5 w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-white shadow-xl border border-slate-50 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-110 transition-transform duration-500">
+            {icon ? (
+              <img
+                src={icon}
+                alt={title}
+                className="w-full h-full object-contain p-2"
+                onError={handleImageError}
+              />
+            ) : (
+              <div className="text-sm md:text-lg font-black text-slate-300 uppercase">
+                {title.charAt(0)}
+              </div>
+            )}
+          </div>
 
-        {/* Simple Arrow (Hidden on mobile) */}
-        <ChevronRight size={18} className="hidden md:block text-slate-300 group-hover:text-indigo-500 shrink-0 transition-colors" />
+          {/* Details */}
+          <div className="mt-2">
+             <h3 className="text-[11px] md:text-[14px] font-black text-slate-800 leading-tight uppercase tracking-tight group-hover:text-indigo-600 transition-colors line-clamp-2">
+                {title}
+             </h3>
+             <div className="mt-2 flex items-center justify-between">
+                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+                   Explore now
+                </span>
+                <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-all">
+                   <ChevronRight size={12} strokeWidth={3} />
+                </div>
+             </div>
+          </div>
+        </div>
       </div>
     );
   };

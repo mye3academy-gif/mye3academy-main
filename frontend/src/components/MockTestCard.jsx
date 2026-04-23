@@ -40,10 +40,10 @@ const MockTestCard = ({ test, isEmbedded = false, index = 0 }) => {
     navigateToTest(test._id);
   };
 
-  const cardImage = test.thumbnail 
+  const cardImage = test.thumbnail
     ? getImageUrl(test.thumbnail)
-    : (test.category && (test.category.icon || test.category.image)) 
-      ? getImageUrl(test.category.icon || test.category.image) 
+    : (test.category && (test.category.icon || test.category.image))
+      ? getImageUrl(test.category.icon || test.category.image)
       : `${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`;
 
   const enrolledCount = useMemo(() => {
@@ -82,12 +82,12 @@ const MockTestCard = ({ test, isEmbedded = false, index = 0 }) => {
     shadow: "shadow-orange-200",
     btnLabel: "View Grand Test"
   } : {
-    headerBg: "bg-gradient-to-br from-emerald-200 via-emerald-100/60 to-white", 
+    headerBg: "bg-gradient-to-br from-emerald-200 via-emerald-100/60 to-white",
     pillBg: "bg-emerald-200",
     pillText: "text-emerald-800",
     accentText: "text-emerald-600",
     hoverText: "group-hover:text-emerald-800",
-    buttonBg: "bg-gradient-to-r from-emerald-500 to-emerald-600", 
+    buttonBg: "bg-gradient-to-r from-emerald-500 to-emerald-600",
     buttonHover: "hover:opacity-90",
     shadow: "shadow-emerald-200",
     btnLabel: "View Test Series"
@@ -128,13 +128,13 @@ const MockTestCard = ({ test, isEmbedded = false, index = 0 }) => {
             <div className="relative group/logo">
               <div className={`absolute -inset-1 rounded-full blur-2xl opacity-30 group-hover/logo:opacity-50 transition-opacity duration-700 ${isGrand ? 'bg-orange-400' : 'bg-emerald-400'}`}></div>
               <div className="w-10 h-10 rounded-full bg-white shadow-xl border-2 border-white flex items-center justify-center overflow-hidden transform group-hover/logo:scale-110 group-hover/logo:rotate-3 transition-all duration-500 relative z-20">
-                 <div className={`absolute inset-0 opacity-10 ${isGrand ? 'bg-gradient-to-tr from-orange-400 to-transparent' : 'bg-gradient-to-tr from-emerald-400 to-transparent'}`}></div>
-                 <img
-                   src={cardImage}
-                   alt="Category"
-                   onError={handleImageError}
-                   className="w-full h-full object-contain p-2 relative z-10"
-                 />
+                <div className={`absolute inset-0 opacity-10 ${isGrand ? 'bg-gradient-to-tr from-orange-400 to-transparent' : 'bg-gradient-to-tr from-emerald-400 to-transparent'}`}></div>
+                <img
+                  src={cardImage}
+                  alt="Category"
+                  onError={handleImageError}
+                  className="w-full h-full object-contain p-2 relative z-10"
+                />
               </div>
             </div>
           </div>
@@ -161,44 +161,44 @@ const MockTestCard = ({ test, isEmbedded = false, index = 0 }) => {
           </div>
 
           <div className="space-y-1.5 mb-1.5">
-             <div className="flex items-center justify-between group/item">
-                <div className="flex items-center gap-2">
-                   <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
-                      <Clock size={9} className={theme.accentText} />
-                   </div>
-                   <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Duration</span>
+            <div className="flex items-center justify-between group/item">
+              <div className="flex items-center gap-2">
+                <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
+                  <Clock size={9} className={theme.accentText} />
                 </div>
-                <span className="text-[10px] font-black text-slate-800 uppercase">{test.durationMinutes || 0} MIN</span>
-             </div>
-             <div className="flex items-center justify-between group/item">
-                <div className="flex items-center gap-2">
-                   <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
-                      <FileText size={9} className={theme.accentText} />
-                   </div>
-                   <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Qs</span>
+                <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Duration</span>
+              </div>
+              <span className="text-[10px] font-black text-slate-800 uppercase">{test.durationMinutes || 0} MIN</span>
+            </div>
+            <div className="flex items-center justify-between group/item">
+              <div className="flex items-center gap-2">
+                <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
+                  <FileText size={9} className={theme.accentText} />
                 </div>
-                <span className="text-[10px] font-black text-slate-800 uppercase">{test.totalQuestions || 0}</span>
-             </div>
-             <div className="flex items-center justify-between group/item">
-                <div className="flex items-center gap-2">
-                   <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
-                      <Trophy size={9} className={theme.accentText} />
-                   </div>
-                   <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Marks</span>
+                <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Qs</span>
+              </div>
+              <span className="text-[10px] font-black text-slate-800 uppercase">{test.totalQuestions || 0}</span>
+            </div>
+            <div className="flex items-center justify-between group/item">
+              <div className="flex items-center gap-2">
+                <div className={`w-6 h-6 rounded-md ${theme.pillBg} flex items-center justify-center transition-transform group-hover/item:scale-110`}>
+                  <Trophy size={9} className={theme.accentText} />
                 </div>
-                <span className="text-[10px] font-black text-slate-800 uppercase">{test.totalMarks || 0}</span>
-             </div>
-             <div className="pt-1.5 border-t border-slate-50 flex items-center justify-between group/item">
-                <div className="flex items-center gap-2">
-                   <div className={`w-6 h-6 rounded-md ${isGrand ? 'bg-orange-50' : 'bg-emerald-50'} flex items-center justify-center`}>
-                      <span className="text-[9px]">💎</span>
-                   </div>
-                   <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Pricing</span>
+                <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Marks</span>
+              </div>
+              <span className="text-[10px] font-black text-slate-800 uppercase">{test.totalMarks || 0}</span>
+            </div>
+            <div className="pt-1.5 border-t border-slate-50 flex items-center justify-between group/item">
+              <div className="flex items-center gap-2">
+                <div className={`w-6 h-6 rounded-md ${isGrand ? 'bg-orange-50' : 'bg-emerald-50'} flex items-center justify-center`}>
+                  <span className="text-[9px]">💎</span>
                 </div>
-                <span className={`text-[10px] font-black ${test.isFree ? 'text-emerald-600' : 'text-slate-800'}`}>
-                   {test.isFree ? 'FREE' : `Rs.${effectivePrice}`}
-                </span>
-             </div>
+                <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Pricing</span>
+              </div>
+              <span className={`text-[10px] font-black ${test.isFree ? 'text-emerald-600' : 'text-slate-800'}`}>
+                {test.isFree ? 'FREE' : `Rs.${effectivePrice}`}
+              </span>
+            </div>
           </div>
         </div>
 
