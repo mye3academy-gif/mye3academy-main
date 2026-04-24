@@ -159,9 +159,8 @@ const FAQSection = () => {
                 className="w-full flex justify-between items-center p-4 md:p-5 text-left focus:outline-none"
               >
                 <span
-                  className={`text-sm md:text-base font-bold tracking-tight ${
-                    openIndex === idx ? "text-indigo-600" : "text-slate-800"
-                  }`}
+                  className={`text-sm md:text-base font-bold tracking-tight ${openIndex === idx ? "text-indigo-600" : "text-slate-800"
+                    }`}
                 >
                   {faq.q}
                 </span>
@@ -278,9 +277,9 @@ const Home = () => {
         </div>
 
         {/* UPCOMING & POPULAR EXAMS - New Logo Grid */}
-        <UpcomingExamsGallery 
-          data={upcomingExams} 
-          loading={upcomingStatus === "loading"} 
+        <UpcomingExamsGallery
+          data={upcomingExams}
+          loading={upcomingStatus === "loading"}
         />
 
         {/* FEATURES */}

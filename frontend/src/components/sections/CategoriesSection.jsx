@@ -3,11 +3,6 @@ import { ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { getImageUrl, handleImageError } from "../../utils/imageHelper";
-import { motion } from "framer-motion";
-import MockTestCard from "../MockTestCard";
-
-const toTitleCase = (str = "") =>
-  str.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 
 const CategoriesSection = ({ categories = [], loading }) => {
   const navigate = useNavigate();
@@ -48,7 +43,6 @@ const CategoriesSection = ({ categories = [], loading }) => {
 
   /* ── RENDER ── */
   return (
-    /* Testbook uses a very light gray section background */
     <section id="categories" className="py-10 bg-slate-50 scroll-mt-24">
       <div className="max-w-[1200px] mx-auto px-6 lg:px-8">
 
@@ -61,7 +55,7 @@ const CategoriesSection = ({ categories = [], loading }) => {
           </p>
         </div>
 
-        {/* Tabs — modern pill style */}
+        {/* Tabs */}
         <div className="relative mb-10">
           <button
             onClick={() => scroll("left")}
@@ -106,8 +100,9 @@ const CategoriesSection = ({ categories = [], loading }) => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
-              {filteredExams.slice(0, 9).map((item, index) => {
+            {/* Grid - Circular Icons for All Devices */}
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-y-10 gap-x-4 md:gap-x-8 md:gap-y-12">
+              {filteredExams.slice(0, 12).map((item) => {
                 const testIcon = item.thumbnail 
                   ? getImageUrl(item.thumbnail)
                   : (item.category && (item.category.icon || item.category.image)) 
@@ -120,7 +115,6 @@ const CategoriesSection = ({ categories = [], loading }) => {
                   if (!userData) {
                     return navigate(`/all-tests/${idStr}`);
                   }
-                  
                   const isPurchased =
                     userData?.purchasedTests?.some((pid) => String(pid._id || pid) === idStr) ||
                     myMockTests?.some((t) => String(t._id) === idStr);
@@ -131,8 +125,6 @@ const CategoriesSection = ({ categories = [], loading }) => {
                       : Number(item.price || 0);
                   const isFree = item.isFree === true || String(item.isFree) === "true" || effective <= 0;
                   
-                  console.log("CategoriesSection: Clicked test", { name: testLabel, id: idStr, isPurchased, isFree });
-
                   if (isFree || isPurchased) {
                     navigate(`/student/instructions/${idStr}`);
                   } else {
@@ -140,74 +132,35 @@ const CategoriesSection = ({ categories = [], loading }) => {
                   }
                 };
 
-                const gradients = [
-                  "from-teal-500 to-emerald-600",
-                  "from-purple-500 to-indigo-600",
-                  "from-orange-500 to-red-600",
-                  "from-blue-500 to-cyan-600",
-                  "from-pink-500 to-rose-600",
-                  "from-amber-500 to-orange-600",
-                ];
-                const gradClass = gradients[index % gradients.length];
-
                 return (
-                  <motion.div
+                  <div 
                     key={item._id}
                     onClick={handleClick}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    whileHover={{ scale: 1.02 }}
-                    className={`group relative flex flex-col p-4 rounded-[24px] shadow-lg hover:shadow-xl transition-all duration-500 cursor-pointer overflow-hidden bg-gradient-to-br ${gradClass}`}
+                    className="flex flex-col items-center text-center cursor-pointer group"
                   >
-                    {/* Glassy Overlay */}
-                    <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] group-hover:bg-transparent transition-all duration-500"></div>
-                    
-                    {/* Floating Glows */}
-                    <div className="absolute -right-6 -top-6 w-16 h-16 bg-white/20 rounded-full blur-2xl group-hover:bg-white/30 transition-all duration-700"></div>
-
-                    <div className="relative z-10 flex items-center gap-3 mb-3">
-                      {/* Modern Icon Container - Smaller */}
-                      <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center overflow-hidden shrink-0 shadow-lg group-hover:rotate-6 group-hover:scale-110 transition-all duration-500">
-                        {testIcon ? (
+                    <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-white border-2 border-slate-100 shadow-md group-hover:shadow-xl group-hover:border-emerald-100 flex items-center justify-center overflow-hidden transition-all duration-300 transform group-active:scale-90">
+                       {testIcon ? (
                           <img
                             src={testIcon}
                             alt={testLabel}
-                            className="w-full h-full object-contain p-2 brightness-0 invert"
+                            className="w-10 h-10 md:w-14 md:h-14 object-contain p-1 group-hover:scale-110 transition-transform duration-500"
                             onError={handleImageError}
                           />
-                        ) : (
-                          <span className="text-sm font-black text-white">
+                       ) : (
+                          <span className="text-xl md:text-3xl font-black text-slate-800">
                             {testLabel.charAt(0)}
                           </span>
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                         <h3 className="text-[13px] font-black text-white leading-tight uppercase tracking-tight drop-shadow-sm line-clamp-1">
-                           {testLabel}
-                         </h3>
-                         <p className="text-[8px] font-bold text-white/70 uppercase tracking-widest">
-                           Test Series
-                         </p>
-                      </div>
+                       )}
                     </div>
-
-                    <div className="relative z-10 mt-auto flex items-center justify-between">
-                       <span className="text-[9px] font-black text-white/90 uppercase tracking-widest">
-                          Explore
-                       </span>
-                       <div className="px-4 py-1.5 bg-white text-slate-900 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg group-hover:bg-slate-900 group-hover:text-white transition-all duration-300 flex items-center gap-1.5">
-                          View
-                          <ChevronRight size={12} strokeWidth={3} />
-                       </div>
-                    </div>
-                  </motion.div>
+                    <h4 className="mt-3 text-[10px] md:text-xs font-black text-slate-800 leading-tight line-clamp-2 uppercase tracking-tighter md:tracking-tight max-w-[120px]">
+                      {testLabel}
+                    </h4>
+                  </div>
                 );
               })}
             </div>
 
-            {/* "Explore all exams" — bottom right plain link, exactly Testbook */}
+            {/* "Explore all exams" */}
             {filteredExams.length > 0 && (
               <div className="mt-4 text-right">
                 <Link

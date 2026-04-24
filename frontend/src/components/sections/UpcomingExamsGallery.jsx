@@ -113,7 +113,7 @@ const UpcomingExamsGallery = ({ data = { upcoming: [], popular: [] }, loading })
           <div>
             <div className="flex items-center gap-2 mb-6">
               <h2 className="text-xl font-black text-slate-800 tracking-tight uppercase">
-                Mock Tests
+                Upcoming Tests
               </h2>
               <div className="h-1 flex-1 bg-slate-100 rounded-full mx-4 hidden md:block"></div>
               <Zap size={20} className="text-rose-500 fill-rose-500 animate-pulse shrink-0" />
