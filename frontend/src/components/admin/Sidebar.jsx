@@ -101,9 +101,13 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
       <div className="px-5 py-7 flex items-center gap-3 shrink-0">
         <Link
           to="/"
-          className="shrink-0 w-10 h-10 rounded-2xl bg-[#5654F7] flex items-center justify-center text-white shadow-lg hover:rotate-6 transition-transform"
+          className="shrink-0 transition-transform hover:scale-105"
         >
-          <GraduationCap size={22} strokeWidth={2.5} />
+          <img 
+            src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`}
+            alt="Mye3 Logo"
+            className="w-auto h-8 sm:h-9 object-contain"
+          />
         </Link>
         <AnimatePresence>
           {isPinned && (
@@ -114,8 +118,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
               className="overflow-hidden whitespace-nowrap cursor-pointer"
               onClick={() => navigate("/")}
             >
-              <h2 className="text-lg font-black text-slate-800 tracking-tighter italic leading-none">Mye3</h2>
-              <p className="text-[10px] font-bold text-[#5654F7] uppercase tracking-[0.2em] leading-none mt-0.5">Academy Admin</p>
+              <p className="text-[10px] font-black text-[#5654F7] uppercase tracking-[0.2em] leading-none">Academy Admin</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -261,12 +264,15 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
                 {/* Mobile brand */}
                 <div className="px-5 py-6 flex items-center justify-between border-b border-slate-100">
                   <div className="flex items-center gap-3">
-                    <Link to="/" className="w-10 h-10 rounded-2xl bg-[#5654F7] flex items-center justify-center text-white">
-                      <GraduationCap size={22} />
+                    <Link to="/">
+                      <img 
+                        src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`}
+                        alt="Mye3 Logo"
+                        className="h-7 w-auto object-contain"
+                      />
                     </Link>
                     <div>
-                      <h2 className="text-lg font-black text-slate-800 italic">Mye3</h2>
-                      <p className="text-[10px] font-bold text-[#5654F7] uppercase tracking-wider">Academy Admin</p>
+                      <p className="text-[10px] font-black text-[#5654F7] uppercase tracking-wider">Academy Admin</p>
                     </div>
                   </div>
                 </div>

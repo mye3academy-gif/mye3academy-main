@@ -69,13 +69,13 @@ const MonthlyTestSalesChart = ({ data = [] }) => {
                         dataKey="name" 
                         axisLine={false} 
                         tickLine={false} 
-                        tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700, fontFamily: 'Poppins' }}
+                        tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700, fontFamily: 'Jost' }}
                         dy={10}
                     />
                     <YAxis 
                         axisLine={false} 
                         tickLine={false} 
-                        tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700, fontFamily: 'Poppins' }}
+                        tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700, fontFamily: 'Jost' }}
                     />
                     <Tooltip 
                         contentStyle={{ 
@@ -84,7 +84,7 @@ const MonthlyTestSalesChart = ({ data = [] }) => {
                             boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
                             fontSize: '12px',
                             fontWeight: 'bold',
-                            fontFamily: 'Poppins'
+                            fontFamily: 'Jost'
                         }}
                         cursor={{ fill: '#f8fafc' }}
                     />
@@ -92,7 +92,7 @@ const MonthlyTestSalesChart = ({ data = [] }) => {
                         verticalAlign="top" 
                         align="right" 
                         iconType="circle"
-                        wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', paddingBottom: '20px', fontFamily: 'Poppins' }}
+                        wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', paddingBottom: '20px', fontFamily: 'Jost' }}
                     />
                     <Bar 
                         dataKey="Mock" 

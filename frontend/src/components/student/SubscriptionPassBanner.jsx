@@ -6,7 +6,7 @@ import api from "../../api/axios";
 import { Crown, CheckCircle2, ArrowRight } from "lucide-react";
 import { fetchStudentProfile } from "../../redux/studentSlice"; 
 
-export default function SubscriptionPassBanner({ pass, categoryName, isSubscribed, selectedCatId }) {
+export default function SubscriptionPassBanner({ pass, categoryName, isSubscribed, selectedCatId, type }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const { userData } = useSelector((state) => state.user);
     const dispatch = useDispatch();
@@ -137,78 +137,98 @@ export default function SubscriptionPassBanner({ pass, categoryName, isSubscribe
 
     if (hasActivePass) {
         return (
-            <div className="mb-8 w-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 shadow-lg text-white flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                        <CheckCircle2 size={24} className="text-white" />
+            <div className="mb-8 w-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-5 md:p-6 shadow-lg text-white">
+                <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                        <CheckCircle2 size={20} className="text-white" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-black uppercase tracking-widest">{pass.name} is Active!</h3>
-                        <p className="text-emerald-100 text-sm font-medium">You have unlimited access to all {categoryName || "Premium"} tests.</p>
+                        <h3 className="text-sm md:text-lg font-black uppercase tracking-widest">{pass.name} Active!</h3>
+                        <p className="text-emerald-100 text-[9px] md:text-sm font-bold uppercase tracking-tight">Unlimited access to all {categoryName || "Premium"} tests.</p>
                     </div>
                 </div>
             </div>
         );
     }
 
-    return (
-        <div className="mb-8 w-full bg-gradient-to-br from-indigo-900 via-[#1e1b4b] to-indigo-950 rounded-3xl p-1 relative overflow-hidden shadow-2xl">
-            {/* Animated background glow */}
-            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[80px] opacity-40"></div>
-            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-fuchsia-500 rounded-full mix-blend-screen filter blur-[80px] opacity-40"></div>
+    const isMock = type === "mock";
+    const isGrand = type === "grand";
 
-            <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-[22px] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8">
+    // Dynamic Colors based on type
+    const bannerBg = isMock 
+        ? "from-emerald-600 via-teal-700 to-emerald-800" 
+        : isGrand 
+            ? "from-orange-500 via-amber-600 to-orange-700" 
+            : "from-indigo-900 via-[#1e1b4b] to-indigo-950";
+
+    const accentColor = isMock ? "emerald" : isGrand ? "orange" : "indigo";
+    const buttonBg = isMock 
+        ? "from-emerald-500 to-teal-600 shadow-emerald-100" 
+        : isGrand 
+            ? "from-orange-500 to-amber-600 shadow-orange-100" 
+            : "from-indigo-600 to-blue-600 shadow-indigo-100";
+
+    return (
+        <div className={`mb-3 w-full bg-gradient-to-br ${bannerBg} rounded-xl md:rounded-3xl p-0.5 relative overflow-hidden shadow-lg`}>
+            {/* Subtle background glow */}
+            <div className="absolute top-0 right-0 -mr-6 -mt-6 w-20 h-20 bg-white/10 rounded-full blur-[20px]"></div>
+
+            <div className="relative bg-white/5 backdrop-blur-md border border-white/10 rounded-[12px] md:rounded-[22px] p-3 md:p-8 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-8">
                 
-                {/* Left Content */}
-                <div className="flex-1">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-amber-200 to-yellow-400 text-amber-950 text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-4 shadow-lg shadow-amber-500/20">
-                        <Crown size={12} /> PRO PASS
+                {/* Content */}
+                <div className="flex-1 w-full">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                        <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gradient-to-r from-amber-200 to-yellow-400 text-amber-950 text-[6px] md:text-[8px] font-black uppercase tracking-widest rounded-full">
+                            <Crown size={6} /> PRO
+                        </div>
+                        {isMock && <span className="text-[6px] font-black text-emerald-300 uppercase tracking-widest">Mock Edition</span>}
+                        {isGrand && <span className="text-[6px] font-black text-orange-300 uppercase tracking-widest">Grand Edition</span>}
                     </div>
                     
-                    <h2 className="text-2xl md:text-3xl font-black text-white leading-tight mb-2">
-                        Unlock {categoryName ? `${categoryName} Pass` : "Unlimited Mye3 Pass"}
+                    <h2 className="text-sm md:text-3xl font-black text-white leading-tight mb-0.5 uppercase tracking-tight">
+                        {categoryName ? `${categoryName} Pass` : "Premium Pass"}
                     </h2>
                     
-                    <p className="text-indigo-200 text-sm md:text-base font-medium mb-6 max-w-xl">
-                        {pass.description || `Get unrestricted access to all premium tests, detailed analytics, and previous year papers for ${pass.validityDays} days.`}
+                    <p className="text-white/60 text-[8px] md:text-base font-bold uppercase tracking-widest line-clamp-1 md:line-clamp-none">
+                        Unrestricted access for {pass.validityDays} days
                     </p>
 
-                    <div className="flex flex-wrap gap-4">
+                    {/* Features - Desktop Only */}
+                    <div className="hidden md:flex flex-wrap gap-4 mt-4">
                         {["All Premium Tests", `${pass.validityDays} Days Validity`, "Detailed Solutions"].map((feature, idx) => (
                             <div key={idx} className="flex items-center gap-2">
-                                <CheckCircle2 size={16} className="text-emerald-400" />
+                                <CheckCircle2 size={16} className={`text-${accentColor}-400`} />
                                 <span className="text-slate-300 text-xs font-bold uppercase tracking-wider">{feature}</span>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* Right Action Box */}
-                <div className="bg-white rounded-2xl p-6 shadow-xl w-full md:w-80 shrink-0 transform hover:-translate-y-1 transition-transform duration-300">
-                    <div className="text-center mb-6">
+                {/* Buy Box */}
+                <div className="bg-white rounded-lg md:rounded-2xl p-2.5 md:p-6 shadow-xl w-full md:w-80 shrink-0">
+                    <div className="flex items-center justify-between md:flex-col md:justify-center mb-2 md:mb-6">
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-[10px] md:text-xl font-black text-slate-400">₹</span>
+                            <span className="text-xl md:text-5xl font-black text-slate-800 tracking-tighter">{effectivePrice}</span>
+                        </div>
                         {discountPercentage > 0 && (
-                            <div className="flex items-center justify-center gap-2 text-slate-500 mb-1">
-                                <span className="line-through text-sm font-bold">₹{pass.price}</span>
-                                <span className="bg-rose-100 text-rose-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
-                                    Save {discountPercentage}%
+                            <div className="flex items-center gap-1 md:mt-1">
+                                <span className="line-through text-[7px] md:text-sm font-bold text-slate-400">₹{pass.price}</span>
+                                <span className="bg-rose-100 text-rose-600 px-1 py-0.5 rounded text-[6px] md:text-[10px] font-black uppercase tracking-widest">
+                                    -{discountPercentage}%
                                 </span>
                             </div>
                         )}
-                        <div className="flex items-baseline justify-center gap-1">
-                            <span className="text-xl font-black text-slate-400">₹</span>
-                            <span className="text-5xl font-black text-slate-800 tracking-tighter">{effectivePrice}</span>
-                        </div>
                     </div>
 
                     <button 
                         onClick={handleBuyPass}
                         disabled={isProcessing}
-                        className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white py-4 rounded-xl font-black uppercase tracking-[0.1em] text-sm hover:shadow-lg hover:shadow-indigo-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed"
+                        className={`w-full bg-gradient-to-r ${buttonBg} text-white py-2 md:py-4 rounded-md md:rounded-xl font-black uppercase tracking-widest text-[9px] md:text-sm hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-1 group disabled:opacity-70`}
                     >
-                        {isProcessing ? "Processing..." : "Buy Pass Now"}
-                        {!isProcessing && <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />}
+                        {isProcessing ? "Wait..." : "Buy Now"}
+                        {!isProcessing && <ArrowRight size={12} className="hidden md:block group-hover:translate-x-1 transition-transform" />}
                     </button>
-                    <p className="text-center mt-4 text-[10px] font-bold text-slate-400">Secure Payment powered by Razorpay</p>
                 </div>
             </div>
         </div>

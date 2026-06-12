@@ -134,7 +134,7 @@ const ManageInstitutions = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#EDF0FF] font-poppins">
+    <div className="min-h-screen bg-[#EDF0FF] font-outfit">
       {/* WHITE HEADER STRIP */}
       <div className="bg-white border-b border-slate-200 shadow-[0_2px_15px_rgba(0,0,0,0.02)] mb-8">
         <div className="max-w-[1700px] mx-auto px-4 md:px-6 py-4 md:py-8 animate-in fade-in slide-in-from-top-1 duration-700">
@@ -165,23 +165,23 @@ const ManageInstitutions = () => {
             <div className="flex md:hidden flex-col w-full gap-2 px-1">
                <Link
                   to="/admin"
-                  className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-[#7e7e7e]"
+                  className="flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-widest text-[#7e7e7e]"
                 >
                   <ArrowLeft size={8} /> Back to Dashboard
                 </Link>
                 
-               <div className="flex items-center justify-between gap-2">
+               <div className="flex flex-col gap-2 w-full mt-1">
                  <button
                     onClick={handleDownloadReport}
-                    className="flex-1 flex items-center justify-center gap-1.5 bg-white border border-slate-200 text-[#7e7e7e] py-2 text-[9px] font-black uppercase tracking-wider rounded-lg"
+                    className="w-full flex items-center justify-center gap-2 bg-white border border-slate-200 text-[#7e7e7e] py-2.5 text-[8px] font-black uppercase tracking-wider rounded-xl shadow-sm"
                   >
-                    <Download size={12} /> Report
+                    <Download size={14} /> Download Report
                   </button>
                   <Link
                     to="/admin/users/institutions/add"
-                    className="flex-1 flex items-center justify-center gap-1.5 bg-indigo-600 text-white py-2 text-[9px] font-black uppercase tracking-wider rounded-lg shadow-sm shadow-indigo-100"
+                    className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-2.5 text-[8px] font-black uppercase tracking-wider rounded-xl shadow-lg shadow-indigo-100"
                   >
-                    <Plus size={14} /> Add Inst.
+                    <Plus size={16} /> Add New Institution
                   </Link>
                </div>
             </div>
@@ -433,40 +433,51 @@ const ManageInstitutions = () => {
 
                 return (
                   <div key={inst._id} className="p-3.5 space-y-3 bg-white hover:bg-slate-50 transition-all border-b border-slate-50 last:border-0">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center border border-indigo-100 overflow-hidden shrink-0">
-                           <img
-                             src={avatarSrc}
-                             alt={inst.firstname}
-                             className="w-full h-full object-cover"
-                           />
-                        </div>
-                        <div>
-                          <p className="font-extrabold text-gray-900 text-sm">
-                            {inst.firstname} {inst.lastname}
-                          </p>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{inst.email}</p>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-1">
-                        <span className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-none border ${
-                          inst.isActive ? "bg-green-50 text-green-600 border-green-100" : "bg-rose-50 text-rose-600 border-rose-100"
-                        }`}>
-                          {inst.isActive ? "Active" : "Blocked"}
-                        </span>
-                        <p className="text-[8px] text-slate-300 font-bold uppercase tracking-widest">Joined: {new Date(inst.createdAt).toLocaleDateString()}</p>
-                      </div>
-                    </div>
+                   <div className="flex flex-col items-center text-center gap-3">
+                     <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center border border-indigo-100 overflow-hidden shrink-0 shadow-md">
+                        <img
+                          src={avatarSrc}
+                          alt={inst.firstname}
+                          className="w-full h-full object-cover"
+                        />
+                     </div>
+                     <div className="w-full">
+                       <p className="font-black text-gray-900 text-sm uppercase tracking-tight line-clamp-2 px-2">
+                         {inst.firstname} {inst.lastname}
+                       </p>
+                       <div className="flex items-center justify-center gap-2 mt-1.5">
+                          <span className={`px-3 py-1 text-[8px] font-black uppercase tracking-widest rounded-full border ${
+                            inst.isActive ? "bg-green-50 text-green-600 border-green-100" : "bg-rose-50 text-rose-600 border-rose-100"
+                          }`}>
+                            {inst.isActive ? "Active" : "Blocked"}
+                          </span>
+                       </div>
+                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 py-3 border-y border-slate-50">
-                      <div className="space-y-1">
+                     <div className="w-full space-y-2 bg-slate-50/50 p-3 rounded-xl border border-slate-100 text-left">
+                        <div className="flex items-center gap-3 text-[#7e7e7e]">
+                           <div className="w-6 h-6 rounded-lg bg-white flex items-center justify-center shadow-sm border border-slate-100">
+                              <Mail size={12} className="text-indigo-500" />
+                           </div>
+                           <p className="text-[10px] font-bold truncate flex-1">{inst.email}</p>
+                        </div>
+                        <div className="flex items-center gap-3 text-[#7e7e7e]">
+                           <div className="w-6 h-6 rounded-lg bg-white flex items-center justify-center shadow-sm border border-slate-100">
+                              <UserIcon size={12} className="text-indigo-500" />
+                           </div>
+                           <p className="text-[9px] font-black uppercase tracking-widest flex-1">Joined: {inst.createdAt ? new Date(inst.createdAt).toLocaleDateString() : "—"}</p>
+                        </div>
+                     </div>
+                   </div>
+
+                    <div className="grid grid-cols-2 gap-4 py-2.5 border-y border-slate-50">
+                      <div className="space-y-0.5 min-w-0">
                         <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Contact Number</p>
-                        <p className="text-[11px] font-bold text-slate-700">{inst.phoneNumber || "—"}</p>
+                        <p className="text-[10px] font-bold text-slate-700 truncate">{inst.phoneNumber || "—"}</p>
                       </div>
-                      <div className="space-y-1 text-right">
+                      <div className="space-y-0.5 text-right min-w-0">
                         <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Students</p>
-                        <p className="text-[11px] font-black text-indigo-600">{inst.studentCount || 0} Registered</p>
+                        <p className="text-[10px] font-black text-indigo-600 truncate">{inst.studentCount || 0} Registered</p>
                       </div>
                     </div>
 
@@ -500,7 +511,7 @@ const ManageInstitutions = () => {
 
           {status === "succeeded" && filteredInstitutions.length > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 bg-white border border-slate-200 p-4 shadow-sm">
-              <div className="text-[10px] font-black text-[#7e7e7e] uppercase tracking-widest font-poppins">
+              <div className="text-[10px] font-black text-[#7e7e7e] uppercase tracking-widest font-outfit">
                 Showing <span className="text-[#3e4954]">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="text-[#3e4954]">{Math.min(currentPage * ITEMS_PER_PAGE, filteredInstitutions.length)}</span> of <span className="text-[#21b731]">{filteredInstitutions.length}</span> results
               </div>
               

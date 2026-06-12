@@ -46,7 +46,7 @@ const ViewModeToggle = () => {
                 onTap={() => handleSwitch('/student-dashboard')}
                 role="button"
                 tabIndex={0}
-                className="fixed bottom-6 right-6 z-[9999] flex flex-col items-center justify-center w-14 h-14 bg-indigo-600 text-white rounded-full shadow-2xl hover:bg-indigo-700 transition-colors border border-white/20 cursor-pointer select-none"
+                className="fixed bottom-24 left-4 lg:bottom-6 lg:right-6 z-[9999] flex flex-col items-center justify-center w-14 h-14 bg-indigo-600 text-white rounded-full shadow-2xl hover:bg-indigo-700 transition-colors border border-white/20 cursor-pointer select-none font-outfit"
                 title="Switch to Student View"
             >
                 <Eye size={20} strokeWidth={2.5} />
@@ -62,7 +62,7 @@ const ViewModeToggle = () => {
                 onTap={() => handleSwitch('/admin')}
                 role="button"
                 tabIndex={0}
-                className="fixed bottom-6 right-6 z-[9999] flex flex-col items-center justify-center w-14 h-14 bg-slate-900 text-white rounded-full shadow-2xl hover:bg-black transition-colors border-2 border-indigo-500 cursor-pointer select-none"
+                className="fixed bottom-24 left-4 lg:bottom-6 lg:right-6 z-[9999] flex flex-col items-center justify-center w-14 h-14 bg-slate-900 text-white rounded-full shadow-2xl hover:bg-black transition-colors border-2 border-indigo-500 cursor-pointer select-none font-outfit"
                 title="Back to Admin Panel"
             >
                 <Shield size={20} strokeWidth={2.5} />

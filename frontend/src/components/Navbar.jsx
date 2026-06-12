@@ -145,9 +145,9 @@ const Navbar = () => {
           <div className="flex justify-between items-center h-14 md:h-16">
             {/* MOBILE TOP UI */}
             {/* MOBILE TOP UI */}
-            <div className="grid grid-cols-3 md:hidden items-center w-full h-full px-2">
+            <div className="flex md:hidden items-center justify-between w-full h-full px-2 gap-2">
               {/* Left: Logo */}
-              <div className="flex justify-start min-w-0">
+              <div className="flex-shrink-0">
                 <Link
                   to="/"
                   className="flex items-center active:scale-95 transition-transform"
@@ -162,16 +162,16 @@ const Navbar = () => {
 
               {/* Center: Categories */}
               <div
-                className="flex justify-center relative"
+                className="flex-grow flex justify-center relative"
                 ref={dropdownRef}
               >
                 <button
                   onClick={() =>
                     setIsCategoryDropdownOpen(!isCategoryDropdownOpen)
                   }
-                  className="flex items-center justify-center px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl shadow-sm text-slate-700 active:scale-95 transition-all"
+                  className="flex items-center justify-center px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg shadow-sm text-slate-700 active:scale-95 transition-all"
                 >
-                  <span className="text-[10px] font-black uppercase tracking-tight whitespace-nowrap">
+                  <span className="text-[9px] font-black uppercase tracking-tight whitespace-nowrap">
                     {currentCategoryName}
                   </span>
                 </button>
@@ -203,7 +203,7 @@ const Navbar = () => {
               </div>
 
               {/* Right: Menu */}
-              <div className="flex justify-end">
+              <div className="flex-shrink-0">
                 <button
                   onClick={() => setIsMobileMenuOpen(true)}
                   className="p-1.5 text-slate-700 active:scale-90 transition-all"
@@ -405,7 +405,7 @@ const Navbar = () => {
                   <MessageSquare size={20} className="text-indigo-500" /> Add Feedback
                 </Link>
                 <Link
-                  to="/job-notifications"
+                  to="/student-dashboard?tab=job-notifications"
                   className="flex items-center gap-4 text-sm font-black text-slate-700 uppercase tracking-widest"
                 >
                   <Bell size={20} className="text-indigo-500" /> Job Notifications

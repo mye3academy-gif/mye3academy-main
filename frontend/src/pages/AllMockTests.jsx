@@ -131,29 +131,29 @@ export default function AllMockTests({ overrideType }) {
 
       <div className="flex-1 max-w-7xl mx-auto w-full px-4 py-8">
         {/* ─── Page heading ─── */}
-        <div className="mb-4 md:mb-8">
-          <h1 className="text-xl md:text-3xl font-black text-slate-900 leading-tight">
-            {totalTests}+ Explore all Exams
+        <div className="mb-4 md:mb-8 px-1 md:px-2">
+          <h1 className="text-lg md:text-3xl font-black text-slate-900 leading-tight uppercase tracking-tight">
+            {totalTests}+ Explore Exams
           </h1>
-          <p className="text-slate-400 text-[11px] md:text-sm mt-1 font-medium leading-relaxed">
-            Get exam-ready with concepts, questions and study notes as per the latest pattern
+          <p className="text-slate-400 text-[9px] md:text-sm mt-1 font-bold leading-relaxed uppercase tracking-widest">
+            Concepts, questions and study notes as per the latest pattern
           </p>
         </div>
 
         {/* ─── Main panel ─── */}
-        <div className="flex flex-row border border-slate-200 rounded-xl overflow-hidden min-h-[520px] shadow-sm bg-white">
+        <div className="flex flex-col md:flex-row border border-slate-200 rounded-xl overflow-hidden min-h-[520px] shadow-sm bg-white">
 
           {/* LEFT: Category selector sidebar */}
-          <div className="w-[85px] md:w-64 shrink-0 border-r border-slate-200 bg-white">
-            <div className="flex flex-col h-full overflow-y-auto no-scrollbar py-1 md:py-0">
+          <div className="w-full md:w-64 shrink-0 border-b md:border-b-0 md:border-r border-slate-200 bg-white">
+            <div className="flex flex-row md:flex-col h-full overflow-x-auto md:overflow-y-auto no-scrollbar py-1 md:py-0">
             {catLoading ? (
-              <div className="p-4 space-y-3">
+              <div className="p-4 flex flex-row md:flex-col gap-3">
                 {[1,2,3,4,5].map((i) => (
-                  <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
+                   <div key={i} className="h-10 w-24 md:w-full bg-slate-100 rounded animate-pulse shrink-0" />
                 ))}
               </div>
             ) : (
-              <nav>
+              <nav className="flex flex-row md:flex-col">
                 {categories.map((cat) => {
                   const isActive = cat._id === selectedCatId;
                   const count = publicMocktests?.filter(
@@ -164,12 +164,12 @@ export default function AllMockTests({ overrideType }) {
                     <button
                       key={cat._id}
                       onClick={() => handleCatClick(cat._id)}
-                      className={`w-full flex flex-col md:flex-row items-center gap-1 md:gap-3 px-1 md:px-4 py-4 md:py-3.5 text-center md:text-left transition-all group
-                        ${isActive ? "bg-emerald-50 border-r-4 md:border-r-0 md:border-l-4 border-emerald-500" : "hover:bg-slate-50 border-r-4 md:border-r-0 md:border-l-4 border-transparent"}`}
+                      className={`flex-shrink-0 md:w-full flex flex-row items-center gap-1.5 md:gap-3 px-3 md:px-4 py-2.5 md:py-3.5 text-left transition-all group whitespace-nowrap
+                        ${isActive ? "bg-emerald-50 border-b-2 md:border-b-0 md:border-l-4 border-emerald-500" : "hover:bg-slate-50 border-b-2 md:border-b-0 md:border-l-4 border-transparent"}`}
                     >
                       {/* icon */}
-                      <div className={`w-8 h-8 md:w-8 md:h-8 shrink-0 rounded-lg overflow-hidden flex items-center justify-center transition-transform group-active:scale-95
-                        ${isActive ? "bg-emerald-100" : "bg-slate-100"}`}>
+                      <div className={`w-6 h-6 md:w-8 md:h-8 shrink-0 rounded-lg overflow-hidden flex items-center justify-center transition-transform group-active:scale-95
+                        ${isActive ? "bg-emerald-100 shadow-sm" : "bg-slate-100"}`}>
                         {cat.image ? (
                           <img
                             src={getImageUrl(cat.image)}
@@ -178,13 +178,13 @@ export default function AllMockTests({ overrideType }) {
                             className="w-5 h-5 md:w-6 md:h-6 object-contain"
                           />
                         ) : (
-                          <span className="text-[10px] md:text-sm font-black text-slate-400">
+                          <span className="text-xs md:text-sm font-black text-slate-400">
                             {cat.name?.charAt(0)}
                           </span>
                         )}
                       </div>
                       <div className="flex flex-col min-w-0 w-full overflow-hidden">
-                        <p className={`text-[9px] md:text-[13px] font-bold leading-tight break-words md:truncate
+                        <p className={`text-[10px] md:text-[13px] font-black leading-tight truncate uppercase tracking-tighter
                           ${isActive ? "text-emerald-700" : "text-slate-700 group-hover:text-slate-900"}`}>
                           {cat.name}
                         </p>
@@ -205,19 +205,20 @@ export default function AllMockTests({ overrideType }) {
 
             {/* ── SUBSCRIPTION BANNER ── */}
             {stage === STAGES.SUBCATEGORY && activePlanForCategory && (
-               <div className="px-6 pt-6">
+               <div className="px-3 md:px-6 pt-3 md:pt-6">
                  <SubscriptionPassBanner 
                     pass={activePlanForCategory} 
                     categoryName={selectedCat?.name} 
                     isSubscribed={isSubscribed}
                     selectedCatId={selectedCatId}
+                    type={overrideType}
                  />
                </div>
             )}
 
             {/* ── SUBCATEGORY GRID ── */}
             {stage === STAGES.SUBCATEGORY && (
-              <div className="p-6">
+              <div className="p-3 md:p-6">
                 {/* {isSubscribed && (
                   <div className="mb-4 flex items-center gap-2 text-sm font-bold text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-4 py-2 w-fit">
                     👑 You have a subscription pass for this category
@@ -280,7 +281,7 @@ export default function AllMockTests({ overrideType }) {
 
             {/* ── TESTS LIST ── */}
             {stage === STAGES.TESTS && (
-              <div className="p-6">
+              <div className="p-3 md:p-6">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                   <div className="flex items-center gap-3">

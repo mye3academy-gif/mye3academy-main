@@ -345,7 +345,7 @@ const DashboardOverview = ({ setActiveTab }) => {
                  ) : (
                     <div className="py-12 bg-slate-50/50 rounded-none border-2 border-dashed border-slate-200 flex flex-col items-center justify-center">
                        <Trophy className="text-slate-200 mb-2" size={40} />
-                       <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest italic">
+                       <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest">
                           {globalLeaderboardStatus === 'loading' ? 'Calculating rankings...' : 'No ranking data available yet'}
                        </p>
                     </div>
