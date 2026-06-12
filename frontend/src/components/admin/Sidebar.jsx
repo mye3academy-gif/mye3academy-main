@@ -1,3 +1,4 @@
+import newLogo from "../../assets/mye3AcadmeyNewLogo.jpeg";
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,6 +9,7 @@ import { setUserData } from "../../redux/userSlice";
 import { motion, AnimatePresence } from "framer-motion";
 
 import {
+
   LogOut, HelpCircle, GraduationCap, Building2, UserCog,
   ChevronLeft, ChevronRight, ChevronDown,
   CreditCard, LayoutGrid, FileText, Bell
@@ -104,7 +106,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
           className="shrink-0 transition-transform hover:scale-105"
         >
           <img 
-            src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`}
+            src={newLogo}
             alt="Mye3 Logo"
             className="w-auto h-8 sm:h-9 object-contain"
           />
@@ -266,9 +268,9 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
                   <div className="flex items-center gap-3">
                     <Link to="/">
                       <img 
-                        src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`}
+                        src={newLogo}
                         alt="Mye3 Logo"
-                        className="h-7 w-auto object-contain"
+                        className="h-14 w-auto object-contain"
                       />
                     </Link>
                     <div>

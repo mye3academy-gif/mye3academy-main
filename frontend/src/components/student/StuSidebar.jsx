@@ -1,3 +1,4 @@
+import newLogo from "../../assets/mye3AcadmeyNewLogo.jpeg";
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,6 +8,7 @@ import toast from "react-hot-toast";
 import { setUserData } from "../../redux/userSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+
   BookOpen, TrendingUp, Settings, LogOut,
   Search, MessageCircle, LayoutGrid, Menu, X,
   ChevronLeft, ChevronRight, GraduationCap, Bell
@@ -107,7 +109,7 @@ const StuSidebar = ({ activeTab, setActiveTab }) => {
           className="shrink-0 transition-transform hover:scale-105"
         >
           <img 
-            src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`}
+            src={newLogo}
             alt="Mye3 Logo"
             className="w-auto h-8 sm:h-9 object-contain"
           />
@@ -214,9 +216,9 @@ const StuSidebar = ({ activeTab, setActiveTab }) => {
         <div className="flex items-center gap-3">
           <Link to="/">
             <img 
-              src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`}
+              src={newLogo}
               alt="Mye3 Logo"
-              className="h-7 w-auto object-contain"
+              className="h-14 w-auto object-contain"
             />
           </Link>
           <div>
@@ -269,9 +271,9 @@ const StuSidebar = ({ activeTab, setActiveTab }) => {
       <div className="md:hidden fixed top-0 left-0 w-full px-4 py-3 bg-white/95 backdrop-blur-md z-50 flex justify-between items-center shadow-sm border-b border-slate-100">
         <Link to="/">
           <img 
-            src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`}
+            src={newLogo}
             alt="Mye3 Logo"
-            className="h-6 w-auto object-contain"
+            className="h-14 w-auto object-contain"
           />
         </Link>
         <button onClick={() => setIsMobileOpen(true)}>

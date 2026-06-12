@@ -1,3 +1,4 @@
+import newLogo from "../../assets/mye3AcadmeyNewLogo.jpeg";
 // frontend/src/pages/student/InstructionsPage.jsx
 
 import React, { useEffect, useState } from "react";
@@ -23,6 +24,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import RelatedTests from "../../components/sections/RelatedTests";
+
 
 const InstructionsPage = () => {
   const navigate = useNavigate();
@@ -191,9 +193,9 @@ const InstructionsPage = () => {
             className="flex items-center gap-1.5 font-black text-sm tracking-tighter text-slate-700 hover:text-blue-600 transition-colors"
           >
             <img 
-              src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`} 
+              src={newLogo} 
               alt="Mye3 Logo" 
-              className="h-6 w-auto object-contain"
+              className="h-14 w-auto object-contain"
             />
           </Link>
         </div>

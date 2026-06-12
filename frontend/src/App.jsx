@@ -76,6 +76,7 @@ import InstitutionProfileSettings from "./pages/institution/InstitutionProfileSe
 import ProtectedRoute from "./components/student/ProtectedRoute";
 import ViewModeToggle from "./components/common/ViewModeToggle";
 import ConnectWithUs from "./components/common/ConnectWithUs";
+import PWAPrompt from "./components/common/PWAPrompt";
 import { Toaster } from "react-hot-toast";
 
 // ------------------------- MAIN LAYOUT COMPONENT -------------------------
@@ -115,6 +116,7 @@ const MainLayout = ({ children }) => {
       {!hideLayout && <Footer />}
       <ViewModeToggle />
       {!hideLayout && <ConnectWithUs />}
+      <PWAPrompt />
     </>
   );
 };

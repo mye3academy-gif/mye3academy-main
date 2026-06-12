@@ -1,9 +1,13 @@
+import newLogo from "../assets/mye3AcadmeyNewLogo.jpeg";
 import React from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { usePWA } from "../context/PWAContext";
+import { Download } from "lucide-react";
 
 const Footer = () => {
   const { userData } = useSelector((state) => state.user || {});
+  const { deferredPrompt, handleInstall, isInstalled } = usePWA();
   
   // Dashboard path logic
   let dashboardPath = "/student-dashboard";
@@ -22,15 +26,29 @@ const Footer = () => {
           <div className="col-span-2 md:col-span-1 space-y-4">
             <Link to="/" className="flex items-center gap-2 group transition-opacity hover:opacity-80">
               <img 
-                src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`} 
+                src={newLogo} 
                 alt="Mye3 Logo" 
-                className="h-10 w-auto object-contain brightness-0 invert"
+                className="h-14 w-auto object-contain bg-white rounded-md p-1 shadow-sm mix-blend-normal"
               />
             </Link>
             <p className="text-xs leading-relaxed text-slate-400">
               The nation's most trusted AI-powered test series platform. Your
               partner in exam excellence and professional success.
             </p>
+            {!isInstalled && (
+              <button
+                onClick={() => {
+                  if (deferredPrompt && handleInstall) {
+                    handleInstall();
+                  } else {
+                    alert("Please install the app from your browser's menu (Add to Home Screen / Install App).");
+                  }
+                }}
+                className="mt-6 flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-md active:scale-95"
+              >
+                <Download size={16} /> Install App
+              </button>
+            )}
           </div>
 
           {/* QUICK LINKS */}

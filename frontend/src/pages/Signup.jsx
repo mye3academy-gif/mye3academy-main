@@ -1,3 +1,4 @@
+import newLogo from "../assets/mye3AcadmeyNewLogo.jpeg";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -20,6 +21,7 @@ import { signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../utils/firebase";
 import signupIllustration from "../assets/Gemini_Generated_Image_6fv81j6fv81j6fv8 (1).png";
 import toast from "react-hot-toast";
+
 
 const InputField = ({
   id,
@@ -170,7 +172,7 @@ const Signup = () => {
             {/* Logo */}
             <div className="mb-6 flex items-center justify-center cursor-pointer" onClick={() => navigate("/")}>
                 <img 
-                  src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`} 
+                  src={newLogo} 
                   alt="Mye3 Logo" 
                   className="h-14 w-auto object-contain"
                 />

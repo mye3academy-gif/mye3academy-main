@@ -1,3 +1,4 @@
+import newLogo from "../../assets/mye3AcadmeyNewLogo.jpeg";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import api from "../../api/axios";
@@ -5,6 +6,7 @@ import toast from "react-hot-toast";
 import { setUserData } from "../../redux/userSlice";
 
 import {
+
   Home,
   Users,
   BarChart3,
@@ -155,9 +157,9 @@ const InstiSidebar = () => {
       <div className="md:hidden fixed top-0 left-0 w-full p-4 bg-[#a332ff] z-50 flex justify-between border-b border-white/10 shadow-lg">
         <Link to="/">
           <img
-            src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`}
+            src={newLogo}
             alt="Mye3 Logo"
-            className="h-6 w-auto object-contain brightness-0 invert"
+            className="h-14 w-auto object-contain bg-white rounded-md p-1 shadow-sm"
           />
         </Link>
         <button onClick={() => setShowMobileSidebar(!showMobileSidebar)}>
@@ -179,9 +181,9 @@ const InstiSidebar = () => {
         <div className="px-6 py-6 border-b border-white/10">
           <Link to="/">
             <img
-              src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`}
+              src={newLogo}
               alt="Mye3 Logo"
-              className="h-8 w-auto object-contain brightness-0 invert mb-1"
+              className="h-12 w-auto object-contain bg-white rounded-md p-1 shadow-sm mb-1"
             />
           </Link>
           <p className="text-xs text-white/60 font-bold">INSTITUTION</p>

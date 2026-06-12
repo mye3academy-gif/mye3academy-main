@@ -1,3 +1,4 @@
+import newLogo from "../assets/mye3AcadmeyNewLogo.jpeg";
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -5,6 +6,7 @@ import { toast } from "react-toastify";
 import { getImageUrl, handleImageError } from "../utils/imageHelper";
 import { Clock, BookOpen, FileText, Trophy, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
+
 
 const MockTestCard = ({ test, isEmbedded = false, index = 0 }) => {
   const navigate = useNavigate();
@@ -44,7 +46,7 @@ const MockTestCard = ({ test, isEmbedded = false, index = 0 }) => {
     ? getImageUrl(test.thumbnail)
     : (test.category && (test.category.icon || test.category.image))
       ? getImageUrl(test.category.icon || test.category.image)
-      : `${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`;
+      : newLogo;
 
   const enrolledCount = useMemo(() => {
     const total = (test.baseEnrolledCount || 0) + (test.attempts?.length || 0);

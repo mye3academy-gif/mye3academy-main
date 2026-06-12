@@ -1,3 +1,4 @@
+import newLogo from "../assets/mye3AcadmeyNewLogo.jpeg";
 import React, { useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,6 +11,7 @@ import { motion } from "framer-motion";
 import { getImageUrl, handleImageError } from "../utils/imageHelper";
 import { addPurchasedTest, fetchMyMockTests } from "../redux/userSlice";
 import RelatedTests from "../components/sections/RelatedTests";
+
 
 export default function MockTestDetail() {
     const { id } = useParams();
@@ -140,7 +142,7 @@ export default function MockTestDetail() {
                 currency: orderData.currency,
                 name: "Mye3 Academy",
                 description: `Payment for ${test.title}`,
-                image: `${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`,
+                image: newLogo,
                 order_id: orderData.id,
                 handler: async (response) => {
                     try {
@@ -240,7 +242,7 @@ export default function MockTestDetail() {
         ? getImageUrl(test.thumbnail)
         : test.category?.image
         ? getImageUrl(test.category.image)
-        : `${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`;
+        : newLogo;
 
 
 

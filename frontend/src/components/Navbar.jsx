@@ -1,37 +1,33 @@
 // frontend/src/components/Navbar.jsx
+import newLogo from "../assets/mye3AcadmeyNewLogo.jpeg";
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Menu,
   X,
-  User,
   LogOut,
   ChevronDown,
   LayoutDashboard,
-  GraduationCap,
-  Search,
   Home,
-  ClipboardList,
   Zap,
-  Grid,
   MessageSquare,
   HelpCircle,
   Bell,
+  Download,
 } from "lucide-react";
-
-
 
 import { logoutUser } from "../redux/userSlice";
 import { fetchCategories } from "../redux/categorySlice";
 import { setPublicCategoryFilter } from "../redux/studentSlice";
 import { motion, AnimatePresence } from "framer-motion";
-import MobileFooterNav from "./MobileFooterNav";
+import { usePWA } from "../context/PWAContext";
 
 const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const { deferredPrompt, handleInstall, isInstalled } = usePWA();
 
   const { userData } = useSelector((state) => state.user || {});
   const categories = useSelector((state) => state.category?.items || []);
@@ -51,7 +47,6 @@ const Navbar = () => {
       const currentScrollY = window.scrollY;
       setScrolled(currentScrollY > 20);
 
-      // Hide on scroll down, show on scroll up
       if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
         setIsVisible(false);
       } else {
@@ -59,10 +54,8 @@ const Navbar = () => {
       }
       lastScrollY.current = currentScrollY;
 
-      // Reset timer on scroll
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
       
-      // Auto-show after 2 seconds of no scrolling
       if (currentScrollY > 100) {
         scrollTimeoutRef.current = setTimeout(() => {
           setIsVisible(true);
@@ -105,22 +98,17 @@ const Navbar = () => {
     if (location.pathname !== "/all-tests") navigate("/all-tests");
   };
 
-  // --- LOGIC CONNECTIVITY FIX: Dashboard Visibility ---
   const role = userData?.role || "student";
   let dashboardPath = "/student-dashboard";
-  let showDashboardBtn = !!userData; // If logged in, show dashboard button
+  let showDashboardBtn = !!userData;
   let dashboardLabel = "My Dashboard";
 
-  // Check if Admin is in "Student View" mode
   const isAdminInStudentView = role === "admin" && !location.pathname.startsWith("/admin");
 
   if (role === "admin") {
     if (isAdminInStudentView) {
-        // In Student View: Link to Student Dashboard, but label appropriately or hide if preferred
         dashboardPath = "/student-dashboard"; 
         dashboardLabel = "Student Dashboard";
-        // Option: set showDashboardBtn = false to hide it completely in student view
-        // showDashboardBtn = false; 
     } else {
         dashboardPath = "/admin";
         dashboardLabel = "Admin Panel";
@@ -138,37 +126,29 @@ const Navbar = () => {
 
   return (
     <>
-      <nav
-        className={`fixed top-0 w-full z-50 transition-all duration-500 transform ${isVisible ? "translate-y-0" : "-translate-y-full"} ${scrolled ? "bg-white py-1.5 md:py-2 shadow-sm" : "bg-white/90 backdrop-blur-md py-2 md:py-4"}`}
+      <header
+        className={`fixed top-0 w-full z-50 transition-all duration-500 transform ${isVisible ? "translate-y-0" : "-translate-y-full"} ${scrolled ? "bg-white py-1 md:py-2 shadow-sm" : "bg-white/90 backdrop-blur-md py-2 md:py-4"}`}
       >
-        <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <div className="flex justify-between items-center h-14 md:h-16">
-            {/* MOBILE TOP UI */}
-            {/* MOBILE TOP UI */}
-            <div className="flex md:hidden items-center justify-between w-full h-full px-2 gap-2">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
+          <div className="flex justify-between items-center h-16 md:h-24">
+            
+            {/* ── MOBILE VIEW ── */}
+            <div className="flex md:hidden items-center justify-between w-full h-full px-1 gap-2">
               {/* Left: Logo */}
               <div className="flex-shrink-0">
-                <Link
-                  to="/"
-                  className="flex items-center active:scale-95 transition-transform"
-                >
+                <Link to="/" className="flex items-center active:scale-95 transition-transform -ml-4 sm:-ml-8">
                   <img 
-                    src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`} 
+                    src={newLogo} 
                     alt="Mye3 Logo" 
-                    className="h-6 sm:h-7 w-auto object-contain"
+                    className="h-14 sm:h-16 w-auto object-contain object-left mix-blend-multiply scale-[1.1] origin-left"
                   />
                 </Link>
               </div>
 
               {/* Center: Categories */}
-              <div
-                className="flex-grow flex justify-center relative"
-                ref={dropdownRef}
-              >
+              <div className="flex-grow flex justify-center relative" ref={dropdownRef}>
                 <button
-                  onClick={() =>
-                    setIsCategoryDropdownOpen(!isCategoryDropdownOpen)
-                  }
+                  onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
                   className="flex items-center justify-center px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg shadow-sm text-slate-700 active:scale-95 transition-all"
                 >
                   <span className="text-[9px] font-black uppercase tracking-tight whitespace-nowrap">
@@ -203,7 +183,22 @@ const Navbar = () => {
               </div>
 
               {/* Right: Menu */}
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 flex items-center gap-1">
+                {!isInstalled && (
+                  <button
+                    onClick={() => {
+                      if (deferredPrompt && handleInstall) {
+                        handleInstall();
+                      } else {
+                        alert("Please use your browser's menu to 'Install App' or 'Add to Home Screen'.");
+                      }
+                    }}
+                    className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-600 text-white rounded-lg active:scale-95 transition-transform shadow-sm"
+                  >
+                    <Download size={12} />
+                    <span className="text-[9px] font-black uppercase tracking-wider">Install</span>
+                  </button>
+                )}
                 <button
                   onClick={() => setIsMobileMenuOpen(true)}
                   className="p-1.5 text-slate-700 active:scale-90 transition-all"
@@ -213,31 +208,19 @@ const Navbar = () => {
               </div>
             </div>
 
-
-
-
-
-
-
-
-
-
-            {/* DESKTOP TOP UI */}
+            {/* ── DESKTOP VIEW ── */}
             <div className="hidden md:flex items-center w-full gap-8">
               {/* === LEFT: Logo === */}
-              <Link
-                to="/"
-                className="flex items-center flex-shrink-0 hover:scale-[1.02] transition-transform"
-              >
+              <Link to="/" className="flex items-center flex-shrink-0 hover:scale-[1.02] transition-transform -ml-12 md:-ml-20">
                 <img 
-                  src={`${import.meta.env.VITE_SERVER_URL}/uploads/images/mye3.png`} 
+                  src={newLogo} 
                   alt="Mye3 Logo" 
-                  className="h-10 w-auto object-contain"
+                  className="h-20 md:h-24 w-auto object-contain object-left mix-blend-multiply scale-[1.15] origin-left"
                 />
               </Link>
 
-              {/* === CENTER: Nav Links === */}
-              <div className="flex items-center gap-8 font-bold text-[11px] text-slate-600 mr-auto">
+              {/* === RIGHT: Nav Links === */}
+              <nav className="flex items-center gap-8 font-bold text-[11px] text-slate-600 ml-auto mr-8">
                 <Link
                   to="/"
                   className={location.pathname === "/" ? "text-indigo-600" : "hover:text-indigo-600 transition-colors uppercase tracking-widest"}
@@ -262,11 +245,10 @@ const Navbar = () => {
                 >
                   GRAND TESTS
                 </Link>
-              </div>
+              </nav>
 
-
-              {/* === RIGHT: Actions === */}
-              <div className="flex items-center gap-8 ml-auto">
+              {/* === FAR RIGHT: Actions === */}
+              <div className="flex items-center gap-6">
                 <div className="w-px h-5 bg-slate-200" />
                 
                 {userData ? (
@@ -282,10 +264,8 @@ const Navbar = () => {
 
                     <div className="relative">
                       <button
-                        onClick={() =>
-                          setIsProfileDropdownOpen(!isProfileDropdownOpen)
-                        }
-                        className="flex items-center gap-3 p-1 pr-4 rounded-full border border-slate-200 bg-slate-50 hover:bg-white transition-all"
+                        onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                        className="flex items-center gap-3 p-1 pr-4 rounded-full border border-slate-200 bg-slate-50 hover:bg-white transition-all shadow-sm"
                       >
                         <div className="w-7 h-7 rounded-full overflow-hidden bg-indigo-100 flex items-center justify-center font-black text-[10px] text-indigo-600">
                           {userData.profilePicture ? (
@@ -301,10 +281,7 @@ const Navbar = () => {
                         <span className="text-[10px] font-black text-slate-700 uppercase tracking-tight">
                           {userData.firstname}
                         </span>
-                        <ChevronDown
-                          size={12}
-                          className={isProfileDropdownOpen ? "rotate-180" : ""}
-                        />
+                        <ChevronDown size={12} className={isProfileDropdownOpen ? "rotate-180" : ""} />
                       </button>
                       {isProfileDropdownOpen && (
                         <div className="absolute right-0 mt-3 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl py-2 z-50">
@@ -312,8 +289,7 @@ const Navbar = () => {
                             to={dashboardPath}
                             className="flex items-center px-4 py-3 text-sm font-black text-slate-700 hover:bg-slate-50 transition-colors uppercase tracking-widest"
                           >
-                            <LayoutDashboard size={16} className="mr-2" />{" "}
-                            {dashboardLabel.toUpperCase()}
+                            <LayoutDashboard size={16} className="mr-2" /> {dashboardLabel.toUpperCase()}
                           </Link>
                           <button
                             onClick={handleLogout}
@@ -327,16 +303,10 @@ const Navbar = () => {
                   </div>
                 ) : (
                   <div className="flex items-center gap-4 font-bold text-[11px]">
-                    <Link
-                      to="/login"
-                      className="text-slate-600 hover:text-indigo-600 uppercase tracking-widest"
-                    >
+                    <Link to="/login" className="text-slate-600 hover:text-indigo-600 uppercase tracking-widest">
                       Login
                     </Link>
-                    <Link
-                      to="/signup"
-                      className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all transform hover:scale-105 uppercase tracking-widest"
-                    >
+                    <Link to="/signup" className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all transform hover:scale-105 uppercase tracking-widest">
                       Sign Up
                     </Link>
                   </div>
@@ -344,10 +314,9 @@ const Navbar = () => {
               </div>
             </div>
 
-
           </div>
         </div>
-      </nav>
+      </header>
 
       {/* MOBILE MENU DRAWER */}
       <AnimatePresence>
@@ -368,46 +337,26 @@ const Navbar = () => {
               className="fixed right-0 top-0 h-[100dvh] w-[280px] bg-white shadow-2xl z-[110] md:hidden flex flex-col"
             >
               <div className="p-6 flex justify-between items-center border-b border-slate-50">
-                <span className="text-xs font-black text-indigo-600 uppercase tracking-widest">
-                  Navigation
-                </span>
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2 text-slate-400 hover:text-slate-600"
-                >
+                <span className="text-xs font-black text-indigo-600 uppercase tracking-widest">Navigation</span>
+                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-lg">
                   <X size={20} />
                 </button>
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                <Link
-                  to="/"
-                  className="flex items-center gap-4 text-sm font-black text-slate-700 uppercase tracking-widest"
-                >
+                <Link to="/" className="flex items-center gap-4 text-sm font-black text-slate-700 uppercase tracking-widest">
                   <Home size={20} className="text-indigo-500" /> Home
                 </Link>
-                <Link
-                  to="/mock-tests"
-                  className="flex items-center gap-4 text-sm font-black text-slate-700 uppercase tracking-widest"
-                >
+                <Link to="/mock-tests" className="flex items-center gap-4 text-sm font-black text-slate-700 uppercase tracking-widest">
                   <Zap size={20} className="text-indigo-500" /> Mock Tests
                 </Link>
-                <Link
-                  to="/student/doubts"
-                  className="flex items-center gap-4 text-sm font-black text-slate-700 uppercase tracking-widest"
-                >
+                <Link to="/student/doubts" className="flex items-center gap-4 text-sm font-black text-slate-700 uppercase tracking-widest">
                   <HelpCircle size={20} className="text-indigo-500" /> Ask Doubts
                 </Link>
-                <Link
-                  to="/contact"
-                  className="flex items-center gap-4 text-sm font-black text-slate-700 uppercase tracking-widest"
-                >
+                <Link to="/contact" className="flex items-center gap-4 text-sm font-black text-slate-700 uppercase tracking-widest">
                   <MessageSquare size={20} className="text-indigo-500" /> Add Feedback
                 </Link>
-                <Link
-                  to="/student-dashboard?tab=job-notifications"
-                  className="flex items-center gap-4 text-sm font-black text-slate-700 uppercase tracking-widest"
-                >
+                <Link to="/student-dashboard?tab=job-notifications" className="flex items-center gap-4 text-sm font-black text-slate-700 uppercase tracking-widest">
                   <Bell size={20} className="text-indigo-500" /> Job Notifications
                 </Link>
               </div>
@@ -420,39 +369,23 @@ const Navbar = () => {
                         {userData.firstname?.charAt(0)}
                       </div>
                       <div>
-                        <p className="text-sm font-black text-slate-800 uppercase">
-                          {userData.firstname}
-                        </p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                          {userData.role}
-                        </p>
+                        <p className="text-sm font-black text-slate-800 uppercase">{userData.firstname}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{userData.role}</p>
                       </div>
                     </div>
-                    <Link
-                      to={dashboardPath}
-                      className="flex items-center gap-4 text-sm font-black text-indigo-600 uppercase tracking-widest"
-                    >
+                    <Link to={dashboardPath} className="flex items-center gap-4 text-sm font-black text-indigo-600 uppercase tracking-widest">
                       <LayoutDashboard size={20} /> {dashboardLabel}
                     </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-4 text-sm font-black text-red-500 uppercase tracking-widest pt-4 w-full"
-                    >
+                    <button onClick={handleLogout} className="flex items-center gap-4 text-sm font-black text-red-500 uppercase tracking-widest pt-4 w-full">
                       <LogOut size={20} /> Logout
                     </button>
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-4">
-                    <Link
-                      to="/login"
-                      className="py-3 px-4 text-center text-xs font-black text-slate-700 uppercase border border-slate-200 rounded-xl"
-                    >
+                    <Link to="/login" className="py-3 px-4 text-center text-xs font-black text-slate-700 uppercase border border-slate-200 rounded-xl bg-white">
                       Login
                     </Link>
-                    <Link
-                      to="/signup"
-                      className="py-3 px-4 text-center text-xs font-black text-white uppercase bg-indigo-600 rounded-xl shadow-lg shadow-indigo-100"
-                    >
+                    <Link to="/signup" className="py-3 px-4 text-center text-xs font-black text-white uppercase bg-indigo-600 rounded-xl shadow-lg shadow-indigo-100">
                       Sign Up
                     </Link>
                   </div>
