@@ -9,12 +9,12 @@ const sendEmail = async (email, subject, text) => {
   try {
     console.log("Checking Env:", process.env.EMAIL_USER);
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465, // 
+      host: process.env.EMAIL_HOST || "smtp.gmail.com",
+      port: process.env.EMAIL_PORT || 465, // 
       secure: true, 
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS?.replace(/\s/g, ""), // 
+        pass: process.env.EMAIL_PASS, // 
       },
       connectionTimeout: 10000, // 10 
     });
