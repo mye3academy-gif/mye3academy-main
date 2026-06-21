@@ -47,14 +47,14 @@ export const updatePaymentSetting = async (req, res) => {
     const gateway = await PaymentGateway.findOne({ name });
     if (!gateway) return res.status(404).json({ message: "Gateway not found" });
 
-    // Update fields if they are present in request
-    if (isActive !== undefined) gateway.isActive = isActive;
+    // We force this gateway to be the ONLY active one.
+    gateway.isActive = true; 
     if (isTestMode !== undefined) gateway.isTestMode = isTestMode;
     if (currency) gateway.currency = currency;
     if (themeColor) gateway.themeColor = themeColor;
     
     // Update Keys
-    if (keyId) gateway.credentials.keyId = keyId;
+    if (keyId !== undefined) gateway.credentials.keyId = keyId;
     
     // 🔒 SMART SECRET: Only update if admin typed something new (not asterisks)
     if (keySecret && keySecret !== "********") {
@@ -62,6 +62,9 @@ export const updatePaymentSetting = async (req, res) => {
     }
 
     await gateway.save();
+    
+    // Ensure all OTHER gateways are disabled to prevent conflicts
+    await PaymentGateway.updateMany({ name: { $ne: name } }, { $set: { isActive: false } });
     res.status(200).json({ success: true, message: `${name} Updated` });
 
   } catch (error) {
