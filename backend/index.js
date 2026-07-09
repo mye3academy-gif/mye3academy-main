@@ -45,10 +45,11 @@ const __dirname = path.dirname(__filename);
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
+  "https://mye3academy-main-1.onrender.com",
   "https://mye3academy.com",        
- "http://mye3academy.com",
- "https://www.mye3academy.com" ,
-  "http://www.mye3academy.com" 
+  "http://mye3academy.com",
+  "https://www.mye3academy.com",
+  "http://www.mye3academy.com"
 ];
 
 app.use(
